@@ -40,8 +40,19 @@ class BitacoraService
     // Acción de CU06 Restablecer acceso.
     public const RESTABLECER_ACCESO = 'RESTABLECER_ACCESO';
 
+    // Acciones de CU14 Gestionar especialidades.
+    public const CREAR_ESPECIALIDAD = 'CREAR_ESPECIALIDAD';
+    public const MODIFICAR_ESPECIALIDAD = 'MODIFICAR_ESPECIALIDAD';
+    public const ELIMINAR_ESPECIALIDAD = 'ELIMINAR_ESPECIALIDAD';
+
+    // Acciones de CU08 Gestionar pacientes.
+    public const CREAR_PACIENTE = 'CREAR_PACIENTE';
+    public const MODIFICAR_PACIENTE = 'MODIFICAR_PACIENTE';
+    public const INHABILITAR_PACIENTE = 'INHABILITAR_PACIENTE';
+    public const ACTIVAR_PACIENTE = 'ACTIVAR_PACIENTE';
+
     /**
-     * Devuelve la lista de los valores de todas las acciones (las 16 constantes).
+     * Devuelve la lista de los valores de todas las acciones (todas las constantes).
      * Se usa para validar el filtro "accion" de CU07 Consultar bitácora.
      * Se leen las constantes de la clase, así una acción nueva se incluye sola.
      *

@@ -3,11 +3,13 @@
 use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\InicioController;
+use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
 /*
- * Rutas de DentalRox - Ciclo 1: Paquete de Administración de Usuarios y Seguridad.
+ * Rutas de DentalRox - Ciclo 1: Administración de Usuarios y Seguridad, catálogo de
+ * especialidades y Gestión de Pacientes.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -16,12 +18,14 @@ use Illuminate\Support\Facades\Route;
 // temporal ya reemplazada (CU06, post-condición).
 Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])->group(function () {
 
-    // Entrada según el rol (RN-05).
+    // Entrada: el panel es la pantalla inicial de los dos roles; muestra a cada
+    // rol solo sus opciones (RN-05).
     Route::controller(InicioController::class)->group(function () {
         Route::get('/', 'inicio')->name('inicio');
         // La agenda la ven los dos roles (el administrador también es odontólogo).
+        // Sin enlace en el menú: se implementa en el ciclo de citas.
         Route::get('/agenda', 'agenda')->name('agenda');
-        Route::get('/panel', 'panel')->middleware('rol:administrador')->name('panel');
+        Route::get('/panel', 'panel')->name('panel');
     });
 
     // CU04 Gestionar usuarios, CU05 Asignar rol y CU06 Restablecer acceso.
@@ -54,6 +58,17 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
             Route::post('/delete', 'delete')->name('especialidades.eliminar');
             Route::get('/{id}', 'show')->whereNumber('id')->name('especialidades.mostrar');
         });
+
+    // CU08 Gestionar pacientes y CU09 Buscar paciente.
+    // Los dos roles: sin middleware rol (el administrador también es odontólogo).
+    Route::prefix('pacientes')->controller(PacienteController::class)->group(function () {
+        Route::get('/', 'index')->name('pacientes.listar');
+        Route::post('/', 'store')->name('pacientes.guardar');
+        Route::post('/update', 'update')->name('pacientes.modificar');
+        Route::post('/delete', 'delete')->name('pacientes.eliminar'); // inhabilitar
+        Route::post('/activar', 'activar')->name('pacientes.habilitar');
+        Route::get('/{id}', 'show')->whereNumber('id')->name('pacientes.mostrar');
+    });
 });
 
 // Rutas de autenticación (login, logout y cambio de contraseña).

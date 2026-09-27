@@ -4,24 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Models\Especialidad;
 use App\Models\Tratamiento;
+use App\Services\BitacoraService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 /**
- * Catálogo de especialidades (RF-28). Solo para el administrador.
+ * CU14 Gestionar especialidades (catálogo, RF-28). Solo para el administrador.
  */
 class EspecialidadController extends Controller
 {
     // MOSTRAR la lista de especialidades, con la cantidad de usuarios de cada una.
-    public function index()
+    public function index(): View
     {
         $especialidades = Especialidad::withCount('usuarios')
             ->orderBy('nombre')
             ->get();
 
-        // TEMPORAL: reemplazar por la vista Blade en la tarea de vistas
-        return response()->json($especialidades);
+        return view('especialidades.index', compact('especialidades'));
     }
 
     // CREAR una especialidad.
@@ -29,18 +31,23 @@ class EspecialidadController extends Controller
     {
         $datos = $request->validate($this->reglas(), $this->mensajes());
 
-        Especialidad::create($datos);
+        DB::transaction(function () use ($datos, $request) {
+            $especialidad = Especialidad::create($datos);
+
+            BitacoraService::registrar(BitacoraService::CREAR_ESPECIALIDAD, $request->user()->id, 'especialidades', $especialidad->id);
+        });
 
         return redirect()->back()->with('exito', 'Especialidad registrada correctamente.');
     }
 
-    // MOSTRAR UNA especialidad, con la cantidad de usuarios que la tienen.
-    public function show($id)
+    // MOSTRAR UNA especialidad, con los usuarios que la tienen.
+    public function show($id): View
     {
-        $especialidad = Especialidad::withCount('usuarios')->findOrFail($id);
+        $especialidad = Especialidad::withCount('usuarios')
+            ->with(['usuarios' => fn ($consulta) => $consulta->orderBy('apellidos')->orderBy('nombres')])
+            ->findOrFail($id);
 
-        // TEMPORAL: reemplazar por la vista Blade en la tarea de vistas
-        return response()->json($especialidad);
+        return view('especialidades.show', compact('especialidad'));
     }
 
     // MODIFICAR una especialidad. El id viene en el formulario.
@@ -53,7 +60,12 @@ class EspecialidadController extends Controller
         $datos = $request->validate($this->reglas((int) $request->input('id')), $this->mensajes());
 
         $especialidad = Especialidad::findOrFail($request->input('id'));
-        $especialidad->update($datos);
+
+        DB::transaction(function () use ($especialidad, $datos, $request) {
+            $especialidad->update($datos);
+
+            BitacoraService::registrar(BitacoraService::MODIFICAR_ESPECIALIDAD, $request->user()->id, 'especialidades', $especialidad->id);
+        });
 
         return redirect()->back()->with('exito', 'Especialidad actualizada correctamente.');
     }
@@ -76,9 +88,16 @@ class EspecialidadController extends Controller
                 ->withErrors(['operacion' => 'No se puede eliminar la especialidad porque tiene usuarios o tratamientos asignados.']);
         }
 
-        $especialidad->delete();
+        DB::transaction(function () use ($especialidad, $request) {
+            // Se guarda el id antes de borrar para dejarlo en la bitácora.
+            $idEliminado = $especialidad->id;
+            $especialidad->delete();
 
-        return redirect()->back()->with('exito', 'Especialidad eliminada correctamente.');
+            BitacoraService::registrar(BitacoraService::ELIMINAR_ESPECIALIDAD, $request->user()->id, 'especialidades', $idEliminado);
+        });
+
+        // Se vuelve al listado: si se eliminó desde la ficha, esa página ya no existe.
+        return redirect()->route('especialidades.listar')->with('exito', 'Especialidad eliminada correctamente.');
     }
 
     // Regla del id que llega oculto en el formulario.

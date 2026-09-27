@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Especialidad;
 use App\Models\User;
 use App\Services\BitacoraService;
 use Illuminate\Http\RedirectResponse;
@@ -10,6 +11,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 /**
  * CU04 Gestionar usuarios, CU05 Asignar rol a usuario y CU06 Restablecer acceso de usuario.
@@ -25,7 +27,7 @@ class UsuarioController extends Controller
     ];
 
     // MOSTRAR la lista de usuarios, con buscador opcional (CU04 paso 2).
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $request->validate(
             ['buscar' => ['nullable', 'string', 'max:100']],
@@ -52,8 +54,10 @@ class UsuarioController extends Controller
             // Conserva ?buscar=... en los enlaces de las páginas.
             ->withQueryString();
 
-        // TEMPORAL: reemplazar por la vista Blade en la tarea de vistas
-        return response()->json($usuarios);
+        // CU04 paso 3: el formulario de registro/modificación necesita las especialidades.
+        $especialidades = Especialidad::orderBy('nombre')->get();
+
+        return view('usuarios.index', compact('usuarios', 'especialidades', 'buscar'));
     }
 
     // CREAR un usuario (CU04 pasos 4 a 7) con su rol (CU05).
@@ -86,24 +90,12 @@ class UsuarioController extends Controller
     }
 
     // MOSTRAR UN usuario con el resumen de su acceso (CU04 consultar y CU06 paso 2).
-    public function show($id)
+    public function show($id): View
     {
         $usuario = User::with('especialidad')->findOrFail($id);
 
-        // El hash de la contraseña no sale en el JSON: está en $hidden del modelo User.
-        // TEMPORAL: reemplazar por la vista Blade en la tarea de vistas
-        return response()->json([
-            'usuario' => $usuario,
-            'acceso' => [
-                'bloqueado' => $usuario->estaBloqueado(),
-                'bloqueado_hasta' => $usuario->estaBloqueado()
-                    ? $usuario->bloqueado_hasta->format('Y-m-d H:i:s')
-                    : null,
-                'minutos_restantes' => $usuario->minutosBloqueoRestantes(),
-                'intentos_fallidos' => $usuario->intentos_fallidos,
-                'debe_cambiar_contrasena' => $usuario->debe_cambiar_contrasena,
-            ],
-        ]);
+        // La vista usa estaBloqueado() y minutosBloqueoRestantes() del modelo (RN-03).
+        return view('usuarios.show', compact('usuario'));
     }
 
     // MODIFICAR los datos de un usuario (CU04). El id viene en el formulario.

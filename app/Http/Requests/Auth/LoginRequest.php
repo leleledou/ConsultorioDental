@@ -48,7 +48,10 @@ class LoginRequest extends FormRequest
     {
         return [
             'usuario' => ['required', 'string', 'between:4,30', 'regex:/^\S+$/'],
-            'password' => ['required', 'string', 'min:8', 'regex:/^\S+$/'],
+            // Sin reglas de formato: cualquier contraseña incorrecta de un usuario
+            // existente debe llegar al paso 7 y contar como intento fallido (RN-03).
+            // La política RN-01 se exige al crear la contraseña (CU04 y CU03), no aquí.
+            'password' => ['required', 'string'],
         ];
     }
 
@@ -60,7 +63,6 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         $mensajeUsuario = 'El usuario debe tener entre 4 y 30 caracteres y no contener espacios.';
-        $mensajePassword = 'La contraseña debe tener al menos 8 caracteres y no contener espacios.';
 
         return [
             'usuario.required' => 'El campo Usuario es obligatorio.',
@@ -68,9 +70,7 @@ class LoginRequest extends FormRequest
             'usuario.between' => $mensajeUsuario,
             'usuario.regex' => $mensajeUsuario,
             'password.required' => 'El campo Contraseña es obligatorio.',
-            'password.string' => $mensajePassword,
-            'password.min' => $mensajePassword,
-            'password.regex' => $mensajePassword,
+            'password.string' => 'La contraseña no es válida.',
         ];
     }
 

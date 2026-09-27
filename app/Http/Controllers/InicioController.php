@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\MenuService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,20 +12,20 @@ use Illuminate\View\View;
  */
 class InicioController extends Controller
 {
-    // CU01 paso 10: REDIRIGIR a cada rol a su pantalla (RN-05).
-    public function inicio(Request $request): RedirectResponse
+    // CU01 paso 10: REDIRIGIR al panel, la pantalla inicial de los dos roles.
+    // El panel muestra a cada rol solo sus opciones (RN-05).
+    public function inicio(): RedirectResponse
     {
-        if ($request->user()->rol === 'administrador') {
-            return redirect()->route('panel');
-        }
-
-        return redirect()->route('agenda');
+        return redirect()->route('panel');
     }
 
-    // MOSTRAR el panel de administración (solo administrador).
-    public function panel(): View
+    // MOSTRAR el panel (los dos roles): tablero con una tarjeta por paquete.
+    public function panel(Request $request): View
     {
-        return view('panel');
+        // Las mismas opciones del menú principal, filtradas por rol (RN-05).
+        $paquetes = MenuService::paquetes($request->user());
+
+        return view('panel', compact('paquetes'));
     }
 
     // MOSTRAR la agenda del día (ambos roles; el administrador también es odontólogo).

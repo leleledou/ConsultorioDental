@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bitacora;
+use App\Models\User;
 use App\Services\BitacoraService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 /**
  * CU07 Consultar bitácora. Solo lectura (RN-02): no hay funciones para
@@ -15,7 +17,7 @@ use Illuminate\Validation\Rule;
 class BitacoraController extends Controller
 {
     // MOSTRAR la lista de registros con filtros opcionales (CU07 pasos 2 a 4).
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         // CU07 paso 3: validar los filtros.
         $reglas = [
@@ -68,19 +70,20 @@ class BitacoraController extends Controller
             // Conserva los filtros en los enlaces de las páginas.
             ->withQueryString();
 
-        // TEMPORAL: reemplazar por la vista Blade en la tarea de vistas
-        return response()->json([
-            'mensaje' => $registros->total() === 0 ? 'No existen registros para los filtros aplicados.' : null,
-            'registros' => $registros,
-        ]);
+        // Opciones de los selectores de filtro (usuario y acción).
+        $usuarios = User::orderBy('apellidos')->orderBy('nombres')->get();
+        $acciones = BitacoraService::acciones();
+        sort($acciones);
+
+        // CU07 paso 5: mostrar los resultados (la vista avisa si no hay registros).
+        return view('bitacora.index', compact('registros', 'usuarios', 'acciones'));
     }
 
     // MOSTRAR UN registro de la bitácora con su usuario (CU07 paso 5).
-    public function show($id)
+    public function show($id): View
     {
         $registro = Bitacora::with('usuario')->findOrFail($id);
 
-        // TEMPORAL: reemplazar por la vista Blade en la tarea de vistas
-        return response()->json($registro);
+        return view('bitacora.show', compact('registro'));
     }
 }
