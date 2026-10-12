@@ -17,7 +17,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
- * CU10 Programar cita. Para los dos roles (el administrador también es odontólogo).
+ * CU10 Programar cita y CU11 Reprogramar o cancelar cita.
+ * Para los dos roles (el administrador también es odontólogo).
  * Las reglas de horario están en CitaService (CTR Cita).
  * Nunca se borran citas (RNF-06): se cambia su estado.
  */
@@ -139,7 +140,138 @@ class CitaController extends Controller
     {
         $cita = Cita::with(['paciente', 'odontologo', 'estado'])->findOrFail($id);
 
-        return view('citas.show', compact('cita'));
+        return view('citas.show', [
+            'cita' => $cita,
+            'apertura' => CitaService::HORA_APERTURA,
+            'cierre' => CitaService::HORA_CIERRE,
+        ]);
+    }
+
+    // CU11 REPROGRAMAR (RF-70): crea una cita nueva con el nuevo horario y deja la
+    // original cancelada, así se conserva su registro. El id viene en el formulario.
+    public function reprogramar(Request $request): RedirectResponse
+    {
+        $datos = $request->validate($this->reglaId() + [
+            'fecha' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'hora_inicio' => ['required', 'date_format:H:i'],
+            'motivo_cambio' => ['required', 'string', 'max:255'],
+        ], $this->mensajes());
+
+        // Se conserva la misma duración de la cita original.
+        $duracion = Cita::findOrFail($datos['id'])->duracion_minutos;
+
+        if ($error = $this->validarHorario($datos['fecha'], $datos['hora_inicio'], $duracion)) {
+            return redirect()->back()->withInput()->withErrors(['hora_inicio' => $error]);
+        }
+
+        $resultado = DB::transaction(function () use ($datos, $duracion, $request) {
+            $original = $this->citaProgramadaBloqueada($datos['id']);
+
+            if (! $original) {
+                return ['error' => 'La cita ya tiene un estado final.'];
+            }
+
+            // RF-69: la cita original no cuenta como conflicto (se puede mover dentro de su propia franja).
+            $conflicto = $this->citas->buscarConflicto($datos['fecha'], $datos['hora_inicio'], $duracion, $original->id);
+
+            if ($conflicto) {
+                return ['conflicto' => $conflicto];
+            }
+
+            // 1. Nueva cita programada con el mismo paciente, odontólogo y duración.
+            $nueva = Cita::create([
+                'paciente_id' => $original->paciente_id,
+                'odontologo_id' => $original->odontologo_id,
+                'tratamiento_aplicado_id' => $original->tratamiento_aplicado_id,
+                'fecha' => $datos['fecha'],
+                'hora_inicio' => $datos['hora_inicio'],
+                'duracion_minutos' => $duracion,
+                'motivo' => $original->motivo,
+                'estado_cita_id' => EstadoCita::idDe(EstadoCita::PROGRAMADA),
+                'fecha_registro' => today(),
+            ]);
+
+            // 2. La original queda cancelada, con la referencia a la nueva y el motivo.
+            $original->estado_cita_id = EstadoCita::idDe(EstadoCita::CANCELADA);
+            $original->agregarObservacion("Reprogramada a la cita N.º {$nueva->id}: {$datos['motivo_cambio']}");
+            $original->save();
+
+            // 3. Bitácora (sobre la cita original, que es la que se reprogramó).
+            BitacoraService::registrar(BitacoraService::REPROGRAMAR_CITA, $request->user()->id, 'citas', $original->id);
+
+            return ['cita' => $nueva];
+        }, 3);
+
+        if (isset($resultado['error'])) {
+            return $this->error($resultado['error']);
+        }
+
+        if (isset($resultado['conflicto'])) {
+            return $this->rechazarPorConflicto($resultado['conflicto'], $datos['fecha'], $datos['hora_inicio'], $duracion, (int) $datos['id']);
+        }
+
+        $nueva = $resultado['cita']->refresh();
+
+        return redirect()->route('citas.mostrar', $nueva->id)
+            ->with('exito', "Cita reprogramada para el {$nueva->fecha->format('d/m/Y')} de {$nueva->horaInicioCorta()} a {$nueva->horaFinCorta()}. La cita N.º {$datos['id']} quedó cancelada.");
+    }
+
+    // CU11 CANCELAR (RF-70): la cita pasa a cancelada con su motivo; la franja queda libre
+    // porque la verificación de RF-69 solo cuenta citas programadas. No se borra (RNF-06).
+    public function cancelar(Request $request): RedirectResponse
+    {
+        $datos = $request->validate($this->reglaId() + [
+            'motivo' => ['required', 'string', 'max:255'],
+        ], [
+            // Van primero: reemplazan los mensajes de "motivo" de CU10.
+            'motivo.required' => 'Debe indicar el motivo de la cancelación.',
+            'motivo.max' => 'El motivo no puede superar los 255 caracteres.',
+        ] + $this->mensajes());
+
+        $cancelada = DB::transaction(function () use ($datos, $request) {
+            $cita = $this->citaProgramadaBloqueada($datos['id']);
+
+            if (! $cita) {
+                return false;
+            }
+
+            $cita->estado_cita_id = EstadoCita::idDe(EstadoCita::CANCELADA);
+            $cita->agregarObservacion("Cancelada: {$datos['motivo']}");
+            $cita->save();
+
+            BitacoraService::registrar(BitacoraService::CANCELAR_CITA, $request->user()->id, 'citas', $cita->id);
+
+            return true;
+        });
+
+        if (! $cancelada) {
+            return $this->error('La cita ya tiene un estado final.');
+        }
+
+        return redirect()->back()->with('exito', 'Cita cancelada. Su horario quedó libre en la agenda.');
+    }
+
+    /**
+     * CU11 y CU12: lee la cita bloqueándola hasta el final de la transacción (otra
+     * petición pudo cambiar su estado). Devuelve null si ya no está programada.
+     */
+    private function citaProgramadaBloqueada(int|string $id): ?Cita
+    {
+        $cita = Cita::with('estado')->lockForUpdate()->findOrFail($id);
+
+        return $cita->estaProgramada() ? $cita : null;
+    }
+
+    // Vuelve atrás con un error de negocio (clave "operacion").
+    private function error(string $mensaje): RedirectResponse
+    {
+        return redirect()->back()->withErrors(['operacion' => $mensaje]);
+    }
+
+    // Regla del id que llega oculto en el formulario.
+    private function reglaId(): array
+    {
+        return ['id' => ['required', 'integer', 'exists:citas,id']];
     }
 
     /**
@@ -200,6 +332,12 @@ class CitaController extends Controller
     private function mensajes(): array
     {
         return [
+            'id.required' => 'No se indicó la cita.',
+            'id.integer' => 'La cita indicada no es válida.',
+            'id.exists' => 'La cita indicada no existe.',
+            'motivo_cambio.required' => 'Debe indicar el motivo del cambio.',
+            'motivo_cambio.string' => 'El motivo del cambio debe ser un texto.',
+            'motivo_cambio.max' => 'El motivo del cambio no puede superar los 255 caracteres.',
             'paciente_id.required' => 'Debe seleccionar el paciente.',
             'paciente_id.integer' => 'El paciente indicado no es válido.',
             'paciente_id.exists' => 'El paciente no existe o está inhabilitado.',

@@ -83,10 +83,13 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::get('/{id}', 'show')->whereNumber('id')->name('pacientes.mostrar');
     });
 
-    // CU10 Programar cita. Los dos roles atienden: sin middleware rol.
+    // CU10 Programar cita y CU11 Reprogramar o cancelar cita.
+    // Los dos roles atienden: sin middleware rol.
     Route::prefix('citas')->controller(CitaController::class)->group(function () {
         Route::get('/crear', 'create')->name('citas.crear');
         Route::post('/', 'store')->name('citas.guardar');
+        Route::post('/reprogramar', 'reprogramar')->name('citas.reprogramar');
+        Route::post('/cancelar', 'cancelar')->name('citas.cancelar');
         Route::get('/{id}', 'show')->whereNumber('id')->name('citas.mostrar');
     });
 });
