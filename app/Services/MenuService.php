@@ -78,7 +78,7 @@ class MenuService
                 'descripcion' => 'Registro y búsqueda de pacientes, citas y agenda del día.',
                 'opciones' => [
                     self::opcion('Pacientes', 'pacientes.listar', 'pacientes.*'),
-                    self::opcion('Citas'),
+                    self::opcion('Citas', 'citas.crear', 'citas.*'),
                     self::opcion('Agenda'),
                 ],
             ],

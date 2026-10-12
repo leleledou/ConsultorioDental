@@ -29,15 +29,8 @@ class PacienteController extends Controller
 
         $buscar = $request->input('buscar');
 
-        // CU09 paso 3: buscar. Los orWhere van agrupados en un solo bloque entre paréntesis.
-        $pacientes = Paciente::query()
-            ->when($buscar, function ($consulta, $buscar) {
-                $consulta->where(function ($grupo) use ($buscar) {
-                    $grupo->where('ci', 'like', "%{$buscar}%")
-                        ->orWhere('nombres', 'like', "%{$buscar}%")
-                        ->orWhere('apellidos', 'like', "%{$buscar}%");
-                });
-            })
+        // CU09 paso 3: buscar por CI, nombres o apellidos (scope Paciente::buscar, compartido con CU10).
+        $pacientes = Paciente::buscar($buscar)
             ->orderBy('apellidos')
             ->orderBy('nombres')
             ->paginate(10)

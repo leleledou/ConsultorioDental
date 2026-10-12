@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Cita;
 use App\Models\Especialidad;
+use App\Models\EstadoCita;
 use App\Models\Paciente;
 use App\Models\Tratamiento;
 use App\Models\User;
@@ -68,4 +70,23 @@ function crearTratamiento(array $datos = []): Tratamiento
         'requiere_sesiones' => false,
         'estado' => 'disponible',
     ]);
+}
+
+// Cita programada para mañana de 09:00 a 10:00. Con 'estado' se elige otro estado
+// (requiere EstadoCitaSeeder). Se recarga para leer hora_fin, calculada por la base.
+function crearCita(array $datos = []): Cita
+{
+    $estado = $datos['estado'] ?? EstadoCita::PROGRAMADA;
+    unset($datos['estado']);
+
+    return Cita::create($datos + [
+        'paciente_id' => crearPaciente()->id,
+        'odontologo_id' => crearUsuario()->id,
+        'fecha' => today()->addDay()->toDateString(),
+        'hora_inicio' => '09:00',
+        'duracion_minutos' => 60,
+        'motivo' => 'Control',
+        'estado_cita_id' => EstadoCita::idDe($estado),
+        'fecha_registro' => today(),
+    ])->refresh();
 }

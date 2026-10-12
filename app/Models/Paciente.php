@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Paciente extends Model
@@ -71,5 +73,30 @@ class Paciente extends Model
     public function historiaClinica(): HasOne
     {
         return $this->hasOne(HistoriaClinica::class, 'paciente_id');
+    }
+
+    /**
+     * Citas del paciente (CU10 a CU13).
+     */
+    public function citas(): HasMany
+    {
+        return $this->hasMany(Cita::class, 'paciente_id');
+    }
+
+    /**
+     * CU09 Buscar paciente: filtra por CI, nombres o apellidos.
+     * La usan la lista de pacientes (CU09) y el formulario de programar cita (CU10).
+     * Uso: Paciente::buscar($texto)->...
+     */
+    public function scopeBuscar(Builder $consulta, ?string $texto): void
+    {
+        // Los orWhere van agrupados en un solo bloque entre paréntesis.
+        $consulta->when($texto, function ($consulta, $texto) {
+            $consulta->where(function ($grupo) use ($texto) {
+                $grupo->where('ci', 'like', "%{$texto}%")
+                    ->orWhere('nombres', 'like', "%{$texto}%")
+                    ->orWhere('apellidos', 'like', "%{$texto}%");
+            });
+        });
     }
 }

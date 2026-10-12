@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
      * Carga los datos mínimos del sistema.
      *
      * El orden importa por las llaves foráneas: users y tratamientos necesitan
-     * las especialidades.
+     * las especialidades; citas necesita pacientes, users y estados de cita.
      *
      * Ejecutar siempre con: php artisan migrate:fresh --seed
      * (los seeders usan create(); ejecutarlos dos veces sobre la misma base
@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             PacienteSeeder::class,
             TratamientoSeeder::class,
+            EstadoCitaSeeder::class,
+            CitaSeeder::class,
         ]);
     }
 }

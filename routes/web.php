@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\CitaController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\PacienteController;
@@ -80,6 +81,13 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::post('/delete', 'delete')->name('pacientes.eliminar'); // inhabilitar
         Route::post('/activar', 'activar')->name('pacientes.habilitar');
         Route::get('/{id}', 'show')->whereNumber('id')->name('pacientes.mostrar');
+    });
+
+    // CU10 Programar cita. Los dos roles atienden: sin middleware rol.
+    Route::prefix('citas')->controller(CitaController::class)->group(function () {
+        Route::get('/crear', 'create')->name('citas.crear');
+        Route::post('/', 'store')->name('citas.guardar');
+        Route::get('/{id}', 'show')->whereNumber('id')->name('citas.mostrar');
     });
 });
 
