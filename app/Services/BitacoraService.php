@@ -51,6 +51,22 @@ class BitacoraService
     public const INHABILITAR_PACIENTE = 'INHABILITAR_PACIENTE';
     public const ACTIVAR_PACIENTE = 'ACTIVAR_PACIENTE';
 
+    // Acciones de CU15 Gestionar catálogo de tratamientos.
+    public const CREAR_TRATAMIENTO = 'CREAR_TRATAMIENTO';
+    public const MODIFICAR_TRATAMIENTO = 'MODIFICAR_TRATAMIENTO';
+    public const BAJA_TRATAMIENTO = 'BAJA_TRATAMIENTO';
+    public const HABILITAR_TRATAMIENTO = 'HABILITAR_TRATAMIENTO';
+
+    // Acción de CU10 Programar cita.
+    public const PROGRAMAR_CITA = 'PROGRAMAR_CITA';
+
+    // Acciones de CU11 Reprogramar o cancelar cita.
+    public const REPROGRAMAR_CITA = 'REPROGRAMAR_CITA';
+    public const CANCELAR_CITA = 'CANCELAR_CITA';
+
+    // Acción de CU12 Actualizar estado de cita.
+    public const CAMBIO_ESTADO_CITA = 'CAMBIO_ESTADO_CITA';
+
     /**
      * Devuelve la lista de los valores de todas las acciones (todas las constantes).
      * Se usa para validar el filtro "accion" de CU07 Consultar bitácora.

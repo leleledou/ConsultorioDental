@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Especialidad;
+use App\Models\Paciente;
+use App\Models\Tratamiento;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -8,9 +12,8 @@ use Tests\TestCase;
 | Test Case
 |--------------------------------------------------------------------------
 |
-| The closure you provide to your test functions is always bound to a specific PHPUnit test
-| case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
-| need to change it using the "pest()" function to bind a different classes or traits.
+| Las pruebas de tests/Feature (Base y Transaccionales) usan la base MySQL de
+| pruebas (dentalrox_test, ver phpunit.xml) y la reinician con RefreshDatabase.
 |
 */
 
@@ -20,31 +23,49 @@ pest()->extend(TestCase::class)
 
 /*
 |--------------------------------------------------------------------------
-| Expectations
+| Funciones de apoyo
 |--------------------------------------------------------------------------
 |
-| When you're writing tests, you often need to check that values meet certain conditions. The
-| "expect()" function gives you access to a set of "expectations" methods that you can use
-| to assert different things. Of course, you may extend the Expectation API at any time.
+| Crean los datos mínimos de las pruebas, sin depender de los datos de
+| desarrollo.
 |
 */
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
-
-/*
-|--------------------------------------------------------------------------
-| Functions
-|--------------------------------------------------------------------------
-|
-| While Pest is very powerful out-of-the-box, you may have some testing code specific to your
-| project that you don't want to repeat in every file. Here you can also expose helpers as
-| global functions to help you to reduce the number of lines of code in your test files.
-|
-*/
-
-function something()
+// Usuario activo con el rol indicado ('administrador' u 'odontologo').
+function crearUsuario(string $rol = 'odontologo', array $datos = []): User
 {
-    // ..
+    return User::factory()->create(['rol' => $rol] + $datos);
+}
+
+// Paciente activo con datos válidos; $datos reemplaza los valores por defecto.
+function crearPaciente(array $datos = []): Paciente
+{
+    static $numero = 0;
+    $numero++;
+
+    return Paciente::create($datos + [
+        'ci' => (string) (7000000 + $numero),
+        'nombres' => "Paciente{$numero}",
+        'apellidos' => 'Prueba',
+        'fecha_nacimiento' => '1990-01-01',
+        'sexo' => 'F',
+        'estado' => 'activo',
+        'fecha_registro' => today(),
+    ]);
+}
+
+// Tratamiento disponible del catálogo; crea la especialidad si no se indica.
+function crearTratamiento(array $datos = []): Tratamiento
+{
+    static $numero = 0;
+    $numero++;
+
+    return Tratamiento::create($datos + [
+        'nombre' => "Tratamiento {$numero}",
+        'especialidad_id' => Especialidad::factory()->create()->id,
+        'duracion_estimada_minutos' => 60,
+        'numero_sesiones_previstas' => 1,
+        'requiere_sesiones' => false,
+        'estado' => 'disponible',
+    ]);
 }

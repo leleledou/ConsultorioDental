@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Tratamiento extends Model
 {
@@ -30,4 +31,34 @@ class Tratamiento extends Model
         'requiere_sesiones',
         'estado',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'duracion_estimada_minutos' => 'integer',
+            'numero_sesiones_previstas' => 'integer',
+            'requiere_sesiones' => 'boolean',
+        ];
+    }
+
+    /**
+     * Cada tratamiento pertenece a una especialidad (CU15).
+     */
+    public function especialidad(): BelongsTo
+    {
+        return $this->belongsTo(Especialidad::class, 'especialidad_id');
+    }
+
+    /**
+     * Indica si el tratamiento se puede elegir al programar una cita (CU10).
+     */
+    public function estaDisponible(): bool
+    {
+        return $this->estado === 'disponible';
+    }
 }

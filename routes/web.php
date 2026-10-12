@@ -4,6 +4,7 @@ use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\TratamientoController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,17 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
             Route::post('/update', 'update')->name('especialidades.modificar');
             Route::post('/delete', 'delete')->name('especialidades.eliminar');
             Route::get('/{id}', 'show')->whereNumber('id')->name('especialidades.mostrar');
+        });
+
+    // CU15 Gestionar catálogo de tratamientos (RF-25).
+    Route::prefix('tratamientos')->middleware('rol:administrador')
+        ->controller(TratamientoController::class)->group(function () {
+            Route::get('/', 'index')->name('tratamientos.listar');
+            Route::post('/', 'store')->name('tratamientos.guardar');
+            Route::post('/update', 'update')->name('tratamientos.modificar');
+            Route::post('/delete', 'delete')->name('tratamientos.eliminar'); // dar de baja
+            Route::post('/activar', 'activar')->name('tratamientos.habilitar');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('tratamientos.mostrar');
         });
 
     // CU08 Gestionar pacientes y CU09 Buscar paciente.

@@ -40,4 +40,12 @@ class Especialidad extends Model
     {
         return $this->hasMany(User::class, 'especialidad_id');
     }
+
+    /**
+     * Una especialidad tiene muchos tratamientos del catálogo (CU15).
+     */
+    public function tratamientos(): HasMany
+    {
+        return $this->hasMany(Tratamiento::class, 'especialidad_id');
+    }
 }

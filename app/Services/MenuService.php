@@ -65,7 +65,7 @@ class MenuService
                 'descripcion' => 'Especialidades, tratamientos, tarifas, diagnósticos y materiales.',
                 'opciones' => [
                     self::opcion('Especialidades', 'especialidades.listar', 'especialidades.*', true),
-                    self::opcion('Tratamientos', soloAdmin: true),
+                    self::opcion('Tratamientos', 'tratamientos.listar', 'tratamientos.*', true),
                     self::opcion('Tarifas', soloAdmin: true),
                     self::opcion('Diagnósticos', soloAdmin: true),
                     self::opcion('Materiales', soloAdmin: true),
