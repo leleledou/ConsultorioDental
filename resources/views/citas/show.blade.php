@@ -84,6 +84,37 @@
                 </dl>
             </div>
 
+            {{-- CU12 Actualizar estado (RF-71): solo para una cita programada --}}
+            @if ($cita->estaProgramada())
+                <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Actualizar estado</h3>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        «Atendida» y «No asistida» solo se pueden marcar el día de la cita o después.
+                    </p>
+
+                    <form method="POST" action="{{ route('citas.estado') }}" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:items-end">
+                        @csrf
+                        <input type="hidden" name="id" value="{{ $cita->id }}">
+                        <div>
+                            <x-input-label for="estado_cita_id" value="Nuevo estado" />
+                            <select id="estado_cita_id" name="estado_cita_id" class="{{ $claseCampo }}" required>
+                                <option value="">Elegir…</option>
+                                @foreach ($estadosDestino as $e)
+                                    <option value="{{ $e->id }}" @disabled($cita->fecha->gt(today()) && $e->nombre !== 'cancelada')>{{ ucfirst($e->nombre) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <x-input-label for="observacion" value="Observación (opcional)" />
+                            <x-text-input id="observacion" name="observacion" type="text" class="mt-1 block w-full" maxlength="255" />
+                        </div>
+                        <div>
+                            <x-primary-button>Guardar estado</x-primary-button>
+                        </div>
+                    </form>
+                </div>
+            @endif
+
             <div class="flex flex-wrap items-center gap-4">
                 <a href="{{ route('agenda', ['fecha' => $cita->fecha->toDateString()]) }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
                     Volver a la agenda

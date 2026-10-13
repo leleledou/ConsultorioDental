@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\BitacoraService;
 use App\Services\CitaService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
- * CU10 Programar cita y CU11 Reprogramar o cancelar cita.
+ * CU10 Programar cita, CU11 Reprogramar o cancelar cita y CU12 Actualizar estado de cita.
  * Para los dos roles (el administrador también es odontólogo).
  * Las reglas de horario están en CitaService (CTR Cita).
  * Nunca se borran citas (RNF-06): se cambia su estado.
@@ -26,6 +27,28 @@ class CitaController extends Controller
 {
     public function __construct(private CitaService $citas)
     {
+    }
+
+    // CU12: MOSTRAR las citas de un día (por defecto hoy) para actualizar su estado.
+    public function index(Request $request): View
+    {
+        $request->validate(
+            ['fecha' => ['nullable', 'date_format:Y-m-d']],
+            ['fecha.date_format' => 'La fecha indicada no es válida.']
+        );
+
+        $fecha = Carbon::parse($request->input('fecha', today()->toDateString()));
+
+        $citas = Cita::with(['paciente', 'odontologo', 'estado'])
+            ->where('fecha', $fecha->toDateString())
+            ->orderBy('hora_inicio')
+            ->get();
+
+        return view('citas.estado', [
+            'citas' => $citas,
+            'fecha' => $fecha,
+            'estadosDestino' => $this->estadosDestino(),
+        ]);
     }
 
     // CU10 pasos 1 y 2: MOSTRAR el formulario de programar cita.
@@ -142,9 +165,68 @@ class CitaController extends Controller
 
         return view('citas.show', [
             'cita' => $cita,
+            'estadosDestino' => $this->estadosDestino(),
             'apertura' => CitaService::HORA_APERTURA,
             'cierre' => CitaService::HORA_CIERRE,
         ]);
+    }
+
+    // CU12 ACTUALIZAR el estado de una cita programada (RF-71). El id viene en el formulario.
+    public function cambiarEstado(Request $request): RedirectResponse
+    {
+        $datos = $request->validate($this->reglaId() + [
+            'estado_cita_id' => ['required', 'integer', 'exists:estados_cita,id'],
+            'observacion' => ['nullable', 'string', 'max:255'],
+        ], $this->mensajes());
+
+        $destino = EstadoCita::findOrFail($datos['estado_cita_id']);
+
+        // Estados destino válidos: atendida, no asistida o cancelada.
+        if (! $this->estadosDestino()->contains('id', $destino->id)) {
+            return $this->error('El estado elegido no es válido: solo se puede cambiar a atendida, no asistida o cancelada.');
+        }
+
+        $error = DB::transaction(function () use ($datos, $destino, $request) {
+            $cita = $this->citaProgramadaBloqueada($datos['id']);
+
+            if (! $cita) {
+                return 'La cita ya tiene un estado final.';
+            }
+
+            // Atendida / no asistida: solo si la cita es de hoy o de un día anterior.
+            if ($destino->nombre !== EstadoCita::CANCELADA && $cita->fecha->gt(today())) {
+                return 'Solo se puede marcar como atendida o no asistida una cita de hoy o de días anteriores.';
+            }
+
+            $cita->estado_cita_id = $destino->id;
+            if (! empty($datos['observacion'])) {
+                $cita->agregarObservacion(ucfirst($destino->nombre).": {$datos['observacion']}");
+            }
+            $cita->save();
+
+            BitacoraService::registrar(BitacoraService::CAMBIO_ESTADO_CITA, $request->user()->id, 'citas', $cita->id);
+
+            if ($destino->nombre === EstadoCita::ATENDIDA) {
+                // Ciclo 4: RF-73 (agendar la siguiente sesión del tratamiento) y RF-49
+                // (generar la sesión de evolución). Dependen del tratamiento aplicado.
+            }
+
+            return null;
+        });
+
+        if ($error) {
+            return $this->error($error);
+        }
+
+        return redirect()->back()->with('exito', 'Estado de la cita actualizado a «'.$destino->nombre.'».');
+    }
+
+    // CU12: estados a los que puede pasar una cita programada.
+    private function estadosDestino(): Collection
+    {
+        return EstadoCita::whereIn('nombre', [EstadoCita::ATENDIDA, EstadoCita::NO_ASISTIDA, EstadoCita::CANCELADA])
+            ->orderBy('id')
+            ->get();
     }
 
     // CU11 REPROGRAMAR (RF-70): crea una cita nueva con el nuevo horario y deja la
@@ -335,6 +417,11 @@ class CitaController extends Controller
             'id.required' => 'No se indicó la cita.',
             'id.integer' => 'La cita indicada no es válida.',
             'id.exists' => 'La cita indicada no existe.',
+            'estado_cita_id.required' => 'Debe seleccionar el nuevo estado.',
+            'estado_cita_id.integer' => 'El estado indicado no es válido.',
+            'estado_cita_id.exists' => 'El estado indicado no existe.',
+            'observacion.string' => 'La observación debe ser un texto.',
+            'observacion.max' => 'La observación no puede superar los 255 caracteres.',
             'motivo_cambio.required' => 'Debe indicar el motivo del cambio.',
             'motivo_cambio.string' => 'El motivo del cambio debe ser un texto.',
             'motivo_cambio.max' => 'El motivo del cambio no puede superar los 255 caracteres.',
