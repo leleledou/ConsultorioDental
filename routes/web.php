@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\EspecialidadController;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
  * Rutas de DentalRox - Ciclo 1: Administración de Usuarios y Seguridad, catálogo de
- * especialidades y Gestión de Pacientes.
+ * especialidades y Gestión de Pacientes. Ciclo 2: catálogo de tratamientos, citas y agenda.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -24,11 +25,12 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
     // rol solo sus opciones (RN-05).
     Route::controller(InicioController::class)->group(function () {
         Route::get('/', 'inicio')->name('inicio');
-        // La agenda la ven los dos roles (el administrador también es odontólogo).
-        // Sin enlace en el menú: se implementa en el ciclo de citas.
-        Route::get('/agenda', 'agenda')->name('agenda');
         Route::get('/panel', 'panel')->name('panel');
     });
+
+    // CU13 Consultar agenda (RF-72). La ven los dos roles (el administrador también es odontólogo).
+    // Parámetros GET: vista (dia|semana), fecha, odontologo_id y estado_cita_id.
+    Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
 
     // CU04 Gestionar usuarios, CU05 Asignar rol y CU06 Restablecer acceso.
     Route::prefix('usuarios')->middleware('rol:administrador')

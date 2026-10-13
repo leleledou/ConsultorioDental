@@ -27,10 +27,4 @@ class InicioController extends Controller
 
         return view('panel', compact('paquetes'));
     }
-
-    // MOSTRAR la agenda del día (ambos roles; el administrador también es odontólogo).
-    public function agenda(): View
-    {
-        return view('agenda');
-    }
 }

@@ -79,7 +79,7 @@ class MenuService
                 'opciones' => [
                     self::opcion('Pacientes', 'pacientes.listar', 'pacientes.*'),
                     self::opcion('Citas', 'citas.crear', 'citas.*'),
-                    self::opcion('Agenda'),
+                    self::opcion('Agenda', 'agenda', 'agenda'),
                 ],
             ],
             [
