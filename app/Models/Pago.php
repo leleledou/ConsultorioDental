@@ -29,5 +29,8 @@ class Pago extends Model
         'fecha_pago',
         'numero_comprobante',
         'observaciones',
+        // CU35 Anular abono: 'vigente' o 'anulado'; el motivo es obligatorio al anular.
+        'estado',
+        'motivo_anulacion',
     ];
 }
