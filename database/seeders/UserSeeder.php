@@ -13,6 +13,16 @@ class UserSeeder extends Seeder
      * Crea las cuentas de los dos odontólogos del consultorio
      * (poblado del documento de diseño, Capítulo 4).
      *
+     * Datos de la tabla usuario de referencia/poblacion_referencia.sql, con dos ajustes:
+     * - Roxana es la administradora (en la referencia figura como odontologo, por error).
+     * - La contraseña es la de siempre, cifrada aquí (la referencia solo dice "(encriptada)").
+     * Las columnas contrasena, fecha_creacion y fecha_actualizacion de la referencia
+     * son password, created_at y updated_at en la base.
+     *
+     * Se usa forceCreate() porque id, created_at y updated_at no están en $fillable:
+     * así se conserva el id de la referencia (planes, citas y sesiones apuntan a 1 y 2)
+     * y sus fechas, en lugar de la fecha actual.
+     *
      * No se escriben intentos_fallidos, bloqueado_hasta ni debe_cambiar_contrasena:
      * toman sus valores por defecto de la migración (0, null y false).
      */
@@ -25,7 +35,8 @@ class UserSeeder extends Seeder
         $esteticaDental = Especialidad::where('nombre', 'Estética dental')->firstOrFail();
 
         // Administradora del sistema.
-        User::create([
+        User::forceCreate([
+            'id' => 1,
             'nombres' => 'Roxana',
             'apellidos' => 'Calizaya',
             'ci' => '3456789',
@@ -39,10 +50,13 @@ class UserSeeder extends Seeder
             'telefono' => '70011223',
             'rol' => 'administrador',
             'estado' => 'activo',
+            'created_at' => '2026-01-05 08:00',
+            'updated_at' => '2026-08-20 10:15',
         ]);
 
         // Odontólogo sin rol de administrador.
-        User::create([
+        User::forceCreate([
+            'id' => 2,
             'nombres' => 'Gerson',
             'apellidos' => 'Callejas',
             'ci' => '3987654',
@@ -54,6 +68,8 @@ class UserSeeder extends Seeder
             'telefono' => '70044556',
             'rol' => 'odontologo',
             'estado' => 'activo',
+            'created_at' => '2026-01-05 08:10',
+            'updated_at' => '2026-08-20 10:20',
         ]);
     }
 }
