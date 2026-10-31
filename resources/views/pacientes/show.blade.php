@@ -1,129 +1,117 @@
 {{-- CU08 Consultar paciente: ficha con la edad calculada (no se guarda). --}}
+@php
+    $iniciales = mb_strtoupper(mb_substr($paciente->nombres, 0, 1).mb_substr($paciente->apellidos, 0, 1));
+    $activo = $paciente->estado === 'activo';
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Paciente: {{ $paciente->nombreCompleto() }}
-        </h2>
+        <a href="{{ route('pacientes.listar') }}" class="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-900 hover:underline">
+            <x-icon name="arrow-left" class="h-4 w-4" /> Pacientes
+        </a>
+        <h2>Paciente: {{ $paciente->nombreCompleto() }}</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-8">
+        <div class="mx-auto min-w-0 max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             @if (session('exito'))
-                <div class="rounded-md bg-green-50 dark:bg-green-900/30 p-4 text-sm font-medium text-green-800 dark:text-green-200">
-                    {{ session('exito') }}
-                </div>
+                <x-alerta tipo="exito">{{ session('exito') }}</x-alerta>
             @endif
 
             @if ($errors->any())
-                <div class="rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm font-medium text-red-800 dark:text-red-200">
+                <x-alerta tipo="error">
                     <ul class="space-y-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
-                </div>
+                </x-alerta>
             @endif
 
-            {{-- Datos personales --}}
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="flex items-start justify-between gap-4">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Datos del paciente</h3>
-                    @if ($paciente->estado === 'activo')
-                        <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-200">Activo</span>
-                    @else
-                        <span class="inline-flex rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">Inactivo</span>
-                    @endif
+            {{-- Resumen --}}
+            <section class="dr-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6" aria-label="Resumen del paciente">
+                <div class="flex min-w-0 items-center gap-4">
+                    <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-700 font-display text-lg font-bold text-white" aria-hidden="true">{{ $iniciales }}</span>
+                    <div class="min-w-0">
+                        <p class="truncate font-display text-xl font-bold text-ink">{{ $paciente->nombreCompleto() }}</p>
+                        <p class="mt-0.5 text-sm text-ink-soft">CI {{ $paciente->ci }} · {{ $paciente->edad() }} años</p>
+                    </div>
                 </div>
+                <x-insignia-activo :activo="$activo" class="self-start sm:self-center" />
+            </section>
 
-                <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">CI</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->ci }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Nombres</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->nombres }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Apellidos</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->apellidos }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Fecha de nacimiento</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->fecha_nacimiento->format('d/m/Y') }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Edad</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->edad() }} años</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Sexo</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->sexo === 'F' ? 'Femenino' : 'Masculino' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Teléfono</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->telefono ?? '—' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Correo</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->correo ?? '—' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Dirección</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->direccion ?? '—' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Fecha de registro</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->fecha_registro->format('d/m/Y') }}</dd>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <dt class="text-gray-500 dark:text-gray-400">Observaciones</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100 whitespace-pre-line">{{ $paciente->observaciones ?? '—' }}</dd>
-                    </div>
-                </dl>
-            </div>
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                {{-- Datos personales --}}
+                <section class="dr-card p-5 sm:p-6 lg:col-span-2" aria-labelledby="datos-paciente">
+                    <h3 id="datos-paciente" class="text-lg font-bold text-ink">Datos del paciente</h3>
 
-            {{-- Historia clínica (se abre al registrar al paciente) --}}
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Historia clínica</h3>
-
-                @if ($paciente->historiaClinica)
-                    <dl class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4 text-sm">
-                        <div>
-                            <dt class="text-gray-500 dark:text-gray-400">N.º de historia</dt>
-                            <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->historiaClinica->id }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-gray-500 dark:text-gray-400">Fecha de apertura</dt>
-                            <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $paciente->historiaClinica->fecha_apertura->format('d/m/Y') }}</dd>
+                    <dl class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 text-sm sm:grid-cols-2">
+                        @foreach ([
+                            'CI' => $paciente->ci,
+                            'Nombres' => $paciente->nombres,
+                            'Apellidos' => $paciente->apellidos,
+                            'Fecha de nacimiento' => $paciente->fecha_nacimiento->format('d/m/Y'),
+                            'Edad' => $paciente->edad().' años',
+                            'Sexo' => $paciente->sexo === 'F' ? 'Femenino' : 'Masculino',
+                            'Teléfono' => $paciente->telefono ?? '—',
+                            'Correo' => $paciente->correo ?? '—',
+                            'Dirección' => $paciente->direccion ?? '—',
+                            'Fecha de registro' => $paciente->fecha_registro->format('d/m/Y'),
+                        ] as $etiqueta => $valor)
+                            <div class="min-w-0 border-b border-line pb-3">
+                                <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">{{ $etiqueta }}</dt>
+                                <dd class="mt-1 break-words font-medium text-ink">{{ $valor }}</dd>
+                            </div>
+                        @endforeach
+                        <div class="min-w-0 sm:col-span-2">
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Observaciones</dt>
+                            <dd class="mt-1 whitespace-pre-line break-words font-medium text-ink">{{ $paciente->observaciones ?? '—' }}</dd>
                         </div>
                     </dl>
-                    <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                        Los antecedentes, el odontograma y los tratamientos se registrarán en el paquete de Atención Clínica.
-                    </p>
-                @else
-                    <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">El paciente no tiene historia clínica.</p>
-                @endif
+                </section>
+
+                {{-- Historia clínica (se abre al registrar al paciente) --}}
+                <section class="dr-card h-fit p-5 sm:p-6" aria-labelledby="historia-clinica">
+                    <h3 id="historia-clinica" class="text-lg font-bold text-ink">Historia clínica</h3>
+
+                    @if ($paciente->historiaClinica)
+                        <dl class="mt-5 space-y-4 text-sm">
+                            <div class="border-b border-line pb-3">
+                                <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">N.º de historia</dt>
+                                <dd class="mt-1 font-medium text-ink">{{ $paciente->historiaClinica->id }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Fecha de apertura</dt>
+                                <dd class="mt-1 font-medium text-ink">{{ $paciente->historiaClinica->fecha_apertura->format('d/m/Y') }}</dd>
+                            </div>
+                        </dl>
+                        <p class="mt-5 rounded-lg bg-brand-50 p-3 text-sm text-brand-900">
+                            Los antecedentes, el odontograma y los tratamientos se registrarán en el paquete de Atención Clínica.
+                        </p>
+                    @else
+                        <p class="mt-4 text-sm text-ink-soft">El paciente no tiene historia clínica.</p>
+                    @endif
+                </section>
             </div>
 
-            <div class="flex flex-wrap items-center gap-4">
-                <a href="{{ route('pacientes.listar') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
-                    Volver a pacientes
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('pacientes.listar') }}" class="btn btn-secondary">
+                    <x-icon name="arrow-left" class="h-4 w-4" /> Volver a pacientes
                 </a>
 
                 {{-- CU08: inhabilitar / habilitar desde la ficha (el id viaja oculto) --}}
-                @if ($paciente->estado === 'activo')
+                @if ($activo)
                     <form method="POST" action="{{ route('pacientes.eliminar') }}"
                           onsubmit="return confirm({{ Js::from('¿Inhabilitar al paciente '.$paciente->nombreCompleto().'? Su historia clínica se conserva.') }});">
                         @csrf
                         <input type="hidden" name="id" value="{{ $paciente->id }}">
-                        <x-danger-button>Inhabilitar</x-danger-button>
+                        <x-danger-button :suave="true"><x-icon name="ban" class="h-4 w-4" /> Inhabilitar</x-danger-button>
                     </form>
                 @else
                     <form method="POST" action="{{ route('pacientes.habilitar') }}">
                         @csrf
                         <input type="hidden" name="id" value="{{ $paciente->id }}">
-                        <x-secondary-button type="submit">Habilitar</x-secondary-button>
+                        <x-secondary-button type="submit"><x-icon name="check-circle" class="h-4 w-4" /> Habilitar</x-secondary-button>
                     </form>
                 @endif
             </div>

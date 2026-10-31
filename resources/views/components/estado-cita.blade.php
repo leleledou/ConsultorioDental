@@ -1,15 +1,17 @@
-{{-- Insignia del estado de una cita, con su color (CU10 a CU13). Uso: <x-estado-cita :nombre="$cita->estado->nombre" /> --}}
+{{-- Insignia del estado de una cita, con su color y su texto (CU10 a CU13). Uso: <x-estado-cita :nombre="$cita->estado->nombre" /> --}}
 @props(['nombre'])
 
 @php
-    $colores = [
-        'programada' => 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-200',
-        'atendida' => 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200',
-        'cancelada' => 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200',
-        'no asistida' => 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200',
-    ];
+    // Programada = turquesa de marca; atendida = verde; cancelada = rojo; no asistida = ámbar.
+    [$clases, $punto] = match ($nombre) {
+        'programada' => ['bg-brand-50 text-brand-800 ring-brand-200', 'bg-brand-500'],
+        'atendida' => ['bg-green-50 text-green-800 ring-green-200', 'bg-green-600'],
+        'cancelada' => ['bg-red-50 text-red-800 ring-red-200', 'bg-red-600'],
+        'no asistida' => ['bg-amber-50 text-amber-900 ring-amber-300', 'bg-amber-600'],
+        default => ['bg-gray-100 text-gray-700 ring-gray-200', 'bg-gray-400'],
+    };
 @endphp
 
-<span {{ $attributes->merge(['class' => 'inline-flex rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap '.($colores[$nombre] ?? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300')]) }}>
-    {{ ucfirst($nombre) }}
+<span {{ $attributes->merge(['class' => "badge ring-1 ring-inset $clases"]) }}>
+    <span class="h-1.5 w-1.5 rounded-full {{ $punto }}" aria-hidden="true"></span>{{ ucfirst($nombre) }}
 </span>

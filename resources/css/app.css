@@ -6,3 +6,106 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Sistema de diseño de DentalRox: docs/frontend/DESIGN.md */
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-surface text-ink antialiased;
+    }
+
+    /* Plus Jakarta Sans para títulos; Figtree para el resto. */
+    h1, h2, h3 {
+        letter-spacing: -0.01em;
+        @apply font-display;
+    }
+
+    :focus-visible {
+        outline: 2px solid theme('colors.brand.700');
+        outline-offset: 2px;
+    }
+
+    ::selection {
+        background: theme('colors.brand.100');
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    /* Título de página que muestran las vistas en el slot "header". */
+    .page-header h2 {
+        @apply font-display text-2xl font-bold leading-tight text-ink;
+    }
+
+    /* Tarjeta base: borde fino, sombra mínima. */
+    .dr-card {
+        @apply rounded-2xl border border-line bg-white shadow-card;
+    }
+
+    /* Enlace de la barra lateral. */
+    .nav-item {
+        @apply relative flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-soft transition-colors duration-150 hover:bg-brand-50 hover:text-brand-800;
+    }
+
+    .nav-item-active {
+        @apply bg-brand-50 font-semibold text-brand-800;
+    }
+
+    .nav-item-active::before {
+        content: '';
+        @apply absolute -left-3 top-1.5 bottom-1.5 w-1 rounded-r-full bg-brand-500;
+    }
+}
+
+/* Botones, campos e insignias reutilizables (docs/frontend/DESIGN.md). */
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold shadow-sm transition duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50;
+    }
+
+    .btn-sm {
+        @apply gap-1.5 px-3 py-1.5 text-[13px];
+    }
+
+    .btn-primary {
+        @apply border-transparent bg-brand-700 text-white hover:bg-brand-800 active:bg-brand-900 focus-visible:ring-brand-500;
+    }
+
+    .btn-secondary {
+        @apply border-gray-300 bg-white text-ink hover:border-brand-300 hover:bg-brand-50 focus-visible:ring-brand-500;
+    }
+
+    .btn-danger {
+        @apply border-transparent bg-red-600 text-white hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-500;
+    }
+
+    /* Acción destructiva discreta (filas de tabla). */
+    .btn-danger-soft {
+        @apply border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50 focus-visible:ring-red-500;
+    }
+
+    .dr-input {
+        @apply block w-full rounded-lg border-gray-300 bg-white text-ink shadow-sm transition duration-150 placeholder:text-ink-mute focus:border-brand-600 focus:ring-brand-600 disabled:bg-gray-50 disabled:text-ink-soft;
+    }
+
+    .dr-input-error {
+        @apply border-red-500 focus:border-red-600 focus:ring-red-600;
+    }
+
+    .badge {
+        @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    }
+}
