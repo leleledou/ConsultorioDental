@@ -309,14 +309,14 @@ class ReporteService
         );
     }
 
-    // RF-86: tratamientos no cancelados por odontólogo y especialidad.
+    // RF-86: tratamientos ya iniciados (en proceso o concluidos) por odontólogo y especialidad.
     private function tratamientosOdontologo(array $periodo): array
     {
         $filas = DB::table('tratamientos_aplicados as ta')
             ->join('users as u', 'u.id', '=', 'ta.odontologo_id')
             ->join('tratamientos as t', 't.id', '=', 'ta.tratamiento_id')
             ->join('especialidades as e', 'e.id', '=', 't.especialidad_id')
-            ->where('ta.estado', '!=', 'cancelado')
+            ->whereIn('ta.estado', ['en proceso', 'concluido'])
             ->whereBetween('ta.fecha_inicio', [$periodo['fecha_inicio'], $periodo['fecha_fin']])
             ->groupBy('u.id', 'u.nombres', 'u.apellidos', 'e.id', 'e.nombre')
             ->orderBy('u.apellidos')

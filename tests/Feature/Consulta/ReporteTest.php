@@ -64,15 +64,14 @@ it('estático pacientes atendidos agrupa por paciente y solo cuenta atendidas de
         ->and($datos['nombre_archivo'])->toBe('pacientes_atendidos');
 });
 
-it('estático tratamientos por odontólogo excluye cancelados y lo que está fuera del periodo', function () {
+it('estático tratamientos por odontólogo solo cuenta los iniciados del periodo', function () {
     $especialidad = crearTratamiento(['nombre' => 'Conducto'])->especialidad_id;
     $conducto = crearTratamiento(['especialidad_id' => $especialidad]);
     $base = ['odontologo_id' => $this->usuario->id, 'tratamiento_id' => $conducto->id];
 
-    crearTratamientoAplicado($base + ['fecha_inicio' => '2026-03-02', 'costo_acordado' => 100]);
-    crearTratamientoAplicado($base + ['fecha_inicio' => '2026-03-03', 'costo_acordado' => 250.5]);
-    crearTratamientoAplicado($base + ['fecha_inicio' => '2026-03-04', 'costo_acordado' => 999, 'estado' => 'cancelado']);
-    crearTratamientoAplicado($base + ['fecha_inicio' => '2026-02-28', 'costo_acordado' => 999]);
+    crearTratamientoAplicado($base + ['fecha_inicio' => '2026-03-02', 'costo_acordado' => 100, 'estado' => 'en proceso']);
+    crearTratamientoAplicado($base + ['fecha_inicio' => '2026-03-03', 'costo_acordado' => 250.5, 'estado' => 'concluido', 'fecha_fin' => '2026-03-04']);
+    crearTratamientoAplicado($base + ['fecha_inicio' => '2026-02-28', 'costo_acordado' => 999, 'estado' => 'concluido', 'fecha_fin' => '2026-03-04']);
 
     $datos = $this->servicio->estatico('tratamientos_odontologo', $this->periodo);
 
@@ -81,6 +80,16 @@ it('estático tratamientos por odontólogo excluye cancelados y lo que está fue
         ->and($datos['filas'][0]['cantidad'])->toBe(2)
         ->and($datos['filas'][0]['costo_acordado'])->toBe(350.5)
         ->and($datos['totales'])->toBe(['Cantidad' => 2, 'Costo acordado' => 350.5]);
+});
+
+it('estático tratamientos por odontólogo no cuenta planificados ni cancelados', function () {
+    crearTratamientoAplicado(['fecha_inicio' => '2026-03-02', 'costo_acordado' => 999, 'estado' => 'planificado']);
+    crearTratamientoAplicado(['fecha_inicio' => '2026-03-03', 'costo_acordado' => 999, 'estado' => 'cancelado']);
+
+    $datos = $this->servicio->estatico('tratamientos_odontologo', $this->periodo);
+
+    expect($datos['filas'])->toBe([])
+        ->and($datos['totales'])->toBe(['Cantidad' => 0, 'Costo acordado' => 0]);
 });
 
 it('estático sesiones pendientes solo cuenta las realizadas', function () {
