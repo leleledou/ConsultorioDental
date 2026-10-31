@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Opciones del sistema agrupadas en los 5 paquetes.
@@ -12,8 +13,8 @@ use App\Models\User;
  *
  * Cada opción tiene:
  *   - nombre:     texto visible.
- *   - ruta:       nombre de la ruta; null si todavía no está implementada
- *                 (se muestra en gris con la etiqueta "Próximo ciclo").
+ *   - ruta:       nombre de la ruta, sin parámetros; null si todavía no está
+ *                 implementada (se muestra en gris con la etiqueta "Próximo ciclo").
  *   - activa:     patrón de rutas que marca la opción como la actual.
  *   - solo_admin: RN-05, solo la ve el administrador.
  */
@@ -62,13 +63,17 @@ class MenuService
                 'codigo' => 'P2',
                 'nombre' => 'Catálogos Clínicos y de Servicios',
                 'corto' => 'Catálogos',
-                'descripcion' => 'Especialidades, tratamientos, tarifas, diagnósticos y materiales.',
+                'descripcion' => 'Especialidades, tratamientos, tarifas, diagnósticos, materiales y demás catálogos.',
                 'opciones' => [
                     self::opcion('Especialidades', 'especialidades.listar', 'especialidades.*', true),
                     self::opcion('Tratamientos', 'tratamientos.listar', 'tratamientos.*', true),
-                    self::opcion('Tarifas', soloAdmin: true),
-                    self::opcion('Diagnósticos', soloAdmin: true),
-                    self::opcion('Materiales', soloAdmin: true),
+                    self::opcion('Tarifas', 'tarifas.listar', 'tarifas.*', true),
+                    self::opcion('Diagnósticos', 'diagnosticos.listar', 'diagnosticos.*', true),
+                    self::opcion('Tipos de estudio', 'tipos-estudio.listar', 'tipos-estudio.*', true),
+                    self::opcion('Materiales', 'materiales.listar', 'materiales.*', true),
+                    self::opcion('Antecedentes médicos', 'antecedentes.listar', 'antecedentes.*', true),
+                    self::opcion('Piezas y estados', 'piezas-dentales.listar', 'piezas-dentales.*', true),
+                    self::opcion('Métodos de pago', 'metodos-pago.listar', 'metodos-pago.*', true),
                 ],
             ],
             [
@@ -88,9 +93,9 @@ class MenuService
                 'corto' => 'Atención Clínica',
                 'descripcion' => 'Historia clínica, odontograma, planes y sesiones de tratamiento.',
                 'opciones' => [
-                    self::opcion('Historia clínica y antecedentes'),
+                    self::opcion('Historia clínica y antecedentes', 'historias.listar', 'historias.*'),
                     self::opcion('Odontograma'),
-                    self::opcion('Plan de tratamiento'),
+                    self::opcion('Plan de tratamiento', 'planes.listar', 'planes.*'),
                     self::opcion('Sesiones de tratamiento'),
                     self::opcion('Estudios diagnósticos'),
                 ],
@@ -101,22 +106,25 @@ class MenuService
                 'corto' => 'Pagos y Reportes',
                 'descripcion' => 'Cobros, controles posteriores, avisos y reportes.',
                 'opciones' => [
-                    self::opcion('Pagos'),
+                    self::opcion('Pagos', 'pagos.crear', 'pagos.*'),
                     self::opcion('Controles y seguimiento'),
                     self::opcion('Avisos'),
-                    self::opcion('Reportes'),
+                    self::opcion('Reportes', 'reportes.clinicos', 'reportes.*'),
                 ],
             ],
         ];
     }
 
-    // Arma una opción del menú. Sin ruta, la opción queda inhabilitada ("Próximo ciclo").
+    // Arma una opción del menú. Sin ruta, o si la ruta aún no existe, la opción queda
+    // inhabilitada ("Próximo ciclo").
     private static function opcion(string $nombre, ?string $ruta = null, ?string $activa = null, bool $soloAdmin = false): array
     {
+        $existe = $ruta !== null && Route::has($ruta);
+
         return [
             'nombre' => $nombre,
-            'ruta' => $ruta,
-            'activa' => $activa,
+            'ruta' => $existe ? $ruta : null,
+            'activa' => $existe ? $activa : null,
             'solo_admin' => $soloAdmin,
         ];
     }

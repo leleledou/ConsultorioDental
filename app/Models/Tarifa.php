@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Tarifa extends Model
 {
@@ -28,4 +29,12 @@ class Tarifa extends Model
         'fecha_fin_vigencia',
         'estado',
     ];
+
+    /**
+     * Tratamiento al que pertenece la tarifa.
+     */
+    public function tratamiento(): BelongsTo
+    {
+        return $this->belongsTo(Tratamiento::class, 'tratamiento_id');
+    }
 }

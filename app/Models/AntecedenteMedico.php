@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class AntecedenteMedico extends Model
 {
@@ -25,4 +26,13 @@ class AntecedenteMedico extends Model
         'nombre',
         'descripcion',
     ];
+
+    /**
+     * Historias clínicas que tienen este antecedente.
+     */
+    public function historias(): BelongsToMany
+    {
+        return $this->belongsToMany(HistoriaClinica::class, 'historias_antecedentes', 'antecedente_medico_id', 'historia_clinica_id')
+            ->withPivot('observacion', 'fecha_registro');
+    }
 }

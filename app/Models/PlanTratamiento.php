@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlanTratamiento extends Model
 {
@@ -29,4 +31,28 @@ class PlanTratamiento extends Model
         'costo_total',
         'estado',
     ];
+
+    /**
+     * Tratamientos aplicados del plan.
+     */
+    public function tratamientosAplicados(): HasMany
+    {
+        return $this->hasMany(TratamientoAplicado::class, 'plan_tratamiento_id');
+    }
+
+    /**
+     * Paciente del plan.
+     */
+    public function paciente(): BelongsTo
+    {
+        return $this->belongsTo(Paciente::class, 'paciente_id');
+    }
+
+    /**
+     * Odontólogo responsable (un usuario del sistema).
+     */
+    public function odontologo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'odontologo_id');
+    }
 }

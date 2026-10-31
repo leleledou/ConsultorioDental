@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Pago extends Model
 {
@@ -33,4 +34,20 @@ class Pago extends Model
         'estado',
         'motivo_anulacion',
     ];
+
+    /**
+     * Método con el que se hizo el pago.
+     */
+    public function metodoPago(): BelongsTo
+    {
+        return $this->belongsTo(MetodoPago::class, 'metodo_pago_id');
+    }
+
+    /**
+     * Tratamiento aplicado al que se abona el pago.
+     */
+    public function tratamientoAplicado(): BelongsTo
+    {
+        return $this->belongsTo(TratamientoAplicado::class, 'tratamiento_aplicado_id');
+    }
 }
