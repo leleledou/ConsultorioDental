@@ -119,23 +119,23 @@
                 @else
                     {{-- Tabla (escritorio ancho, desde 1280 px) --}}
                     <div class="hidden xl:block">
-                        <table class="min-w-full text-sm">
+                        <table class="dr-table">
                             <caption class="sr-only">Pacientes registrados</caption>
-                            <thead class="border-b border-line bg-surface/60 text-left text-xs font-semibold uppercase tracking-wider text-ink-soft">
+                            <thead>
                                 <tr>
-                                    <th scope="col" class="px-5 py-3">CI</th>
-                                    <th scope="col" class="px-3 py-3">Paciente</th>
-                                    <th scope="col" class="px-3 py-3">Edad</th>
-                                    <th scope="col" class="px-3 py-3">Teléfono</th>
-                                    <th scope="col" class="px-3 py-3">Estado</th>
-                                    <th scope="col" class="px-5 py-3">Acciones</th>
+                                    <th scope="col">CI</th>
+                                    <th scope="col">Paciente</th>
+                                    <th scope="col">Edad</th>
+                                    <th scope="col">Teléfono</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-line">
+                            <tbody>
                                 @foreach ($pacientes as $p)
-                                    <tr class="transition-colors hover:bg-brand-50/50">
-                                        <td class="whitespace-nowrap px-5 py-3.5 font-medium tabular-nums text-ink">{{ $p->ci }}</td>
-                                        <td class="px-3 py-3.5">
+                                    <tr>
+                                        <td class="whitespace-nowrap font-medium tabular-nums text-ink">{{ $p->ci }}</td>
+                                        <td>
                                             <a href="{{ route('pacientes.mostrar', $p->id) }}" class="group flex items-center gap-3">
                                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-800 ring-1 ring-brand-100" aria-hidden="true">
                                                     {{ mb_strtoupper(mb_substr($p->nombres, 0, 1).mb_substr($p->apellidos, 0, 1)) }}
@@ -145,10 +145,10 @@
                                                 </span>
                                             </a>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-3.5 text-ink-soft">{{ $p->edad() }} años</td>
-                                        <td class="whitespace-nowrap px-3 py-3.5 text-ink-soft">{{ $p->telefono ?? '—' }}</td>
-                                        <td class="px-3 py-3.5"><x-insignia-activo :activo="$p->estado === 'activo'" /></td>
-                                        <td class="px-5 py-3.5"><x-pacientes.acciones :p="$p" /></td>
+                                        <td class="whitespace-nowrap text-ink-soft">{{ $p->edad() }} años</td>
+                                        <td class="whitespace-nowrap text-ink-soft">{{ $p->telefono ?? '—' }}</td>
+                                        <td><x-insignia-activo :activo="$p->estado === 'activo'" /></td>
+                                        <td><x-pacientes.acciones :p="$p" /></td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -158,7 +158,7 @@
                     {{-- Tarjetas (móvil, tablet y laptop angosta): 1 columna, 2 desde 768 px --}}
                     <ul class="grid grid-cols-1 gap-3 p-3 sm:p-4 md:grid-cols-2 xl:hidden">
                         @foreach ($pacientes as $p)
-                            <li class="space-y-3 rounded-xl border border-line bg-white p-4">
+                            <li class="dr-item">
                                 <div class="flex items-start justify-between gap-3">
                                     <a href="{{ route('pacientes.mostrar', $p->id) }}" class="flex min-w-0 items-center gap-3">
                                         <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-brand-800 ring-1 ring-brand-100" aria-hidden="true">

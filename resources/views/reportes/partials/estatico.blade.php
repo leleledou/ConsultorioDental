@@ -1,36 +1,32 @@
 {{-- Reporte estático: tipo y periodo (mismo método del controlador con modo=estatico) --}}
-@php
-    $claseCampo = 'mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm';
-@endphp
+<section class="dr-card overflow-hidden" aria-labelledby="reportes-predefinidos">
+    <header class="border-b border-line bg-surface/60 px-5 py-4 sm:px-6">
+        <h3 id="reportes-predefinidos" class="text-lg font-bold text-ink">Reportes predefinidos</h3>
+        <p class="mt-0.5 text-sm text-ink-soft">Elija un reporte y el periodo que desea consultar.</p>
+    </header>
 
-<div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Reportes predefinidos</h3>
-
-    <form method="GET" action="{{ $accion }}" class="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-6 items-end">
+    <form method="GET" action="{{ $accion }}" class="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
         <input type="hidden" name="modo" value="estatico">
 
-        <div class="sm:col-span-2">
-            <x-input-label for="tipo" value="Reporte" />
-            <select id="tipo" name="tipo" class="{{ $claseCampo }}" required>
+        <x-campo name="tipo" label="Reporte" :requerido="true" class="sm:col-span-2">
+            <select id="tipo" name="tipo" class="dr-input" required>
                 <option value="">Seleccione…</option>
                 @foreach ($estaticos as $clave => $titulo)
                     <option value="{{ $clave }}" @selected(old('tipo', request('tipo')) === $clave)>{{ $titulo }}</option>
                 @endforeach
             </select>
-        </div>
+        </x-campo>
 
-        <div>
-            <x-input-label for="estatico_fecha_inicio" value="Fecha inicial" />
-            <x-text-input id="estatico_fecha_inicio" name="fecha_inicio" type="date" class="mt-1 block w-full" :value="old('fecha_inicio', request('fecha_inicio'))" required />
-        </div>
+        <x-campo name="estatico_fecha_inicio" label="Fecha inicial" :requerido="true">
+            <x-text-input id="estatico_fecha_inicio" name="fecha_inicio" type="date" :value="old('fecha_inicio', request('fecha_inicio'))" required />
+        </x-campo>
 
-        <div>
-            <x-input-label for="estatico_fecha_fin" value="Fecha final" />
-            <x-text-input id="estatico_fecha_fin" name="fecha_fin" type="date" class="mt-1 block w-full" :value="old('fecha_fin', request('fecha_fin'))" required />
-        </div>
+        <x-campo name="estatico_fecha_fin" label="Fecha final" :requerido="true">
+            <x-text-input id="estatico_fecha_fin" name="fecha_fin" type="date" :value="old('fecha_fin', request('fecha_fin'))" required />
+        </x-campo>
 
-        <div class="sm:col-span-4">
-            <x-primary-button>Generar</x-primary-button>
+        <div class="sm:col-span-2 lg:col-span-4">
+            <x-primary-button class="w-full sm:w-auto">Generar</x-primary-button>
         </div>
     </form>
-</div>
+</section>

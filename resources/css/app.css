@@ -109,3 +109,42 @@
         @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold;
     }
 }
+
+/* Patrón de listado (docs/frontend/DESIGN.md): tabla en escritorio y tarjetas en móvil. */
+@layer components {
+    .dr-table {
+        @apply min-w-full text-sm;
+    }
+
+    .dr-table thead {
+        @apply border-b border-line bg-surface/60 text-left text-xs font-semibold uppercase tracking-wider text-ink-soft;
+    }
+
+    .dr-table tbody {
+        @apply divide-y divide-line;
+    }
+
+    .dr-table tbody tr {
+        @apply transition-colors hover:bg-brand-50/50;
+    }
+
+    .dr-table th {
+        @apply px-3 py-3;
+    }
+
+    .dr-table td {
+        @apply px-3 py-3.5;
+    }
+
+    .dr-table th:first-child,
+    .dr-table td:first-child,
+    .dr-table th:last-child,
+    .dr-table td:last-child {
+        @apply px-5;
+    }
+
+    /* Elemento de la lista de tarjetas que sustituye a la tabla en pantallas angostas. */
+    .dr-item {
+        @apply space-y-3 rounded-xl border border-line bg-white p-4;
+    }
+}

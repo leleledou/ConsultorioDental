@@ -1,6 +1,6 @@
 # DESIGN — Identidad visual de DentalRox
 
-Estado: **fase 1 aprobada y fase 2 (Pacientes) implementada**. El login y el panel son la **referencia estética definitiva** del resto de la plataforma: los demás módulos deben igualarlos (mismos tokens, tipografías, radios, sombras y tratamiento del logo). Los valores definitivos viven en `tailwind.config.js` y `resources/css/app.css`.
+Estado: **fases 1 a 3, consolidación visual y Atención Clínica (ciclo 3) implementadas**. El login y el panel son la **referencia estética definitiva** del resto de la plataforma: los demás módulos deben igualarlos (mismos tokens, tipografías, radios, sombras y tratamiento del logo). Los valores definitivos viven en `tailwind.config.js` y `resources/css/app.css`.
 
 ## Concepto
 Odontología moderna, limpia y de confianza: *clínico sereno, preciso, luminoso*. Mucho blanco, turquesa como acento de marca y gris como apoyo.
@@ -76,7 +76,40 @@ Patrón a reutilizar en los demás módulos:
 - **Programar cita (CU10):** dos pasos numerados; campos agrupados (Paciente y profesional / Fecha y horario / Motivo); hora de fin calculada destacada; las franjas libres sugeridas (flujo A2) son botones dentro de la alerta de error.
 - **Ficha de cita:** resumen con bloque de fecha, datos en `dl`, panel «Actualizar estado»; modales de reprogramar y cancelar con icono, errores y franjas libres. `<x-modal>` ahora usa velo `brand-900` y `rounded-2xl`.
 
+## Consolidación visual y responsive (base para el ciclo 3)
+Componentes y estilos compartidos; usarlos en todas las pantallas nuevas en lugar de repetir clases.
+- **`<x-pagina>`**: contenedor del contenido (`max-w-7xl`, margen lateral `px-4 sm:px-6 lg:px-8`, separación vertical `space-y-6`). `ancho="4xl"` lo estrecha para formularios.
+- **`<x-cabecera-pagina titulo subtitulo :volver volver-texto>`**: para el slot `header`: enlace de regreso, título y descripción.
+- **`<x-insignia tono="marca|exito|error|aviso|info|neutro">`**: insignia de estado con punto y texto. `x-estado-cita` y `x-insignia-activo` la usan; para estados nuevos (plan, tratamiento aplicado, pago vigente/anulado) usar el tono que corresponda (en proceso = marca, concluido = exito, cancelado/anulado = error, planificado/pendiente = aviso o neutro).
+- **Listados**: clases `.dr-table` (tabla con cabecera `surface`, filas separadas y hover; las celdas primera y última llevan `px-5`) y `.dr-item` (tarjeta de la versión móvil). Patrón: `<div class="hidden xl:block"><table class="dr-table">…` y `<ul class="grid … xl:hidden"><li class="dr-item">…`; el punto de corte (`md` o `xl`) depende de cuántas columnas tenga la tabla. Una tabla con scroll horizontal solo es aceptable como último recurso.
+- **`<x-agenda.cita :cita>`**: cita de la agenda diaria, con borde y fondo según su estado.
+- **Agenda diaria**: desde 768 px, rejilla por franjas con las citas simultáneas en columnas (las franjas «Disponible» compartidas muestran solo el «+» y el texto «Programar» queda para lectores de pantalla). Por debajo de 768 px es una **lista vertical**: cada hora apila sus citas (programadas primero, canceladas después) y, si está libre, su franja «Disponible» a ancho completo (alto táctil mínimo 44 px). Ambas vistas salen de los mismos datos del controlador: la disponibilidad no cambia.
+- **Anchos verificados**: 320, 375, 390, 430, 768, 1024, 1280 y 1440 px, sin desbordamiento horizontal en Login, Panel, Pacientes, Citas y Agenda.
+
+## Atención Clínica del ciclo 3 (implementado)
+Pantallas: `historias/show`, `planes/index`, `planes/show`, `tratamientos-aplicados/create` y `tratamientos-aplicados/show`.
+- **Componentes nuevos de apoyo**: `<x-estado-clinico :estado>` (plan y tratamiento aplicado: activo y en proceso = turquesa, planificado = azul, concluido = verde, cancelado = rojo), `<x-moneda :monto>` (Bs 1.900,00; sin saltos de línea, para todos los importes) y `<x-dato etiqueta>` (dato de una ficha dentro de un `<dl>`).
+- **Ficha con resumen**: tarjeta superior con lo esencial (nombre, estado, importe, avance) y debajo los datos en `<dl>` sin repetir lo ya mostrado en el resumen.
+- **Listados**: planes y tratamientos del plan usan tabla `dr-table` desde 1280 px y tarjetas `dr-item` por debajo (1 columna, 2 desde 768 px). Cuando cada fila lleva formularios propios (antecedentes de la historia) se usa una única lista de filas en todos los anchos, para no duplicar formularios. El avance de un tratamiento es «Sesión X de Y» con una barra fina.
+- **Formularios**: `<x-campo>` con `*` en los obligatorios y ayuda bajo el campo, agrupados en `<fieldset>` con leyenda en mayúsculas, errores junto al campo y botones apilados en móvil (acción principal arriba). Los importes llevan prefijo «Bs». Los avisos de negocio usan `<x-alerta tipo="aviso">` (p. ej. estudios previos faltantes, sesiones pendientes); las acciones destructivas llevan borde y título rojos y conservan `confirm()`.
+- **Estados vacíos**: icono, mensaje y, si aplica, la acción para empezar.
+
+## Pagos y Estado de cuenta (implementado)
+Pantallas: `pagos/cuenta` y `pagos/create`.
+- **Importes**: siempre con `<x-moneda :monto>` (Bs 1.250,00, sin saltos de línea); las cifras las calcula el backend y la vista solo las muestra. Una anulación se distingue por la insignia roja «Anulado», el monto tachado y en gris (`text-ink-mute line-through`) y el motivo visible; un abono vigente usa la insignia verde «Vigente».
+- **Códigos de color financieros**: costo acordado = neutro (`surface`), total abonado = verde, saldo pendiente = ámbar mientras sea mayor que 0; con saldo 0 aparece la insignia «Saldado». Los totales del paciente van arriba, junto a sus datos.
+- **Estado de cuenta**: una tarjeta por tratamiento (nombre, estado, enlace al plan, acción «Registrar abono», tres cifras y los abonos). Los abonos usan tabla `dr-table` desde 1024 px y tarjetas `dr-item` por debajo; la anulación (`<x-pagos.anular :pago>`, motivo + botón rojo suave + `confirm()`) es el mismo componente en ambas, para no duplicar el formulario en el código.
+- **Registrar abono**: resumen del tratamiento con las tres cifras y el formulario en dos grupos (Importe y fecha / Método y observaciones). El monto lleva prefijo «Bs» y muestra el saldo pendiente como ayuda; los errores del backend (monto mayor al saldo, fecha posterior a hoy) salen junto al campo.
+
+## Reportes (implementado)
+Pantallas: `reportes/clinicos`, `agenda`, `financieros` y los parciales `pestanas`, `estatico`, `periodo-columnas` y `resultado`. La plantilla `reportes/pdf.blade.php` es de exportación y no forma parte del frontend.
+- **Navegación**: los tres tipos de reporte son botones segmentados (`btn-primary` el actual, `btn-secondary` los demás) que pasan a varias líneas en móvil; los errores de validación salen en una `x-alerta` sobre los formularios.
+- **Formularios**: dos tarjetas con cabecera `surface` («Reportes predefinidos» y «Reporte personalizado»). El personalizado se agrupa en Filtros, Periodo y Columnas del reporte; las columnas son casillas grandes (`has-[:checked]`, 44 px de alto) y el botón Generar ocupa todo el ancho en móvil.
+- **Resultado**: cabecera con título, periodo y botones «Exportar PDF» y «Exportar Excel» (mismos parámetros que el reporte en pantalla, icono `download`); totales del backend como tarjetas de cifras; después tabla `dr-table` y, por debajo, tarjetas `dr-item` (la primera columna es el título y las demás pares etiqueta/valor, para que no se pierda ninguna). Con más de 5 columnas la tabla aparece desde 1280 px; con 5 o menos, desde 1024 px. Sin registros: estado vacío que conserva los totales.
+- **`<x-reportes.valor :resultado :clave :valor>`**: pinta cada celda o total: dinero con `<x-moneda>`, la columna `estado` con la insignia que corresponda (cita, plan/tratamiento o abono vigente/anulado) y el resto con el texto de `ReporteService::formatear`, el mismo de la pantalla y del PDF. Las columnas numéricas se alinean a la derecha con cifras tabulares.
+- **Gráficos**: no se agregan. El backend entrega tablas con columnas elegibles y totales, sin series estables que justifiquen una librería de gráficos.
+
 ## Pendiente
-- Rediseñar Tratamientos, Especialidades, Usuarios y Bitácora con el patrón de Pacientes y Citas.
+- Rediseñar con estos componentes el resto del ciclo 3, en este orden: Usuarios, Bitácora y Cambiar contraseña; Especialidades, Tratamientos y demás catálogos.
 - Sustituir las clases `gray-*`/`indigo-*` sueltas de esos módulos por los tokens.
 - Favicon derivado del isotipo; versión transparente del logo (opcional).
