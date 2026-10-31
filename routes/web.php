@@ -12,8 +12,10 @@ use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MetodoPagoController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\PiezaDentalController;
+use App\Http\Controllers\TarifaController;
 use App\Http\Controllers\TipoEstudioController;
 use App\Http\Controllers\TratamientoController;
+use App\Http\Controllers\TratamientoTipoEstudioController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
@@ -80,6 +82,24 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
             Route::post('/delete', 'delete')->name('tratamientos.eliminar'); // dar de baja
             Route::post('/activar', 'activar')->name('tratamientos.habilitar');
             Route::get('/{id}', 'show')->whereNumber('id')->name('tratamientos.mostrar');
+        });
+
+    // CU16 Gestionar tarifas. Una tarifa nunca se modifica ni se elimina.
+    Route::prefix('tarifas')->middleware('rol:administrador')
+        ->controller(TarifaController::class)->group(function () {
+            Route::get('/', 'index')->name('tarifas.listar');
+            Route::post('/', 'store')->name('tarifas.guardar');
+            // El id es el del tratamiento: muestra su historial.
+            Route::get('/{id}', 'show')->whereNumber('id')->name('tarifas.mostrar');
+        });
+
+    // CU19 Definir estudios requeridos por tratamiento (RF-31).
+    Route::prefix('tratamientos')->middleware('rol:administrador')
+        ->controller(TratamientoTipoEstudioController::class)->group(function () {
+            Route::post('/estudios', 'store')->name('tratamientos.estudios.guardar');
+            Route::post('/estudios/update', 'update')->name('tratamientos.estudios.modificar');
+            Route::post('/estudios/delete', 'delete')->name('tratamientos.estudios.quitar');
+            Route::get('/{id}/estudios', 'index')->whereNumber('id')->name('tratamientos.estudios');
         });
 
     // CU17 Gestionar diagnósticos.

@@ -31,6 +31,19 @@ class Tarifa extends Model
     ];
 
     /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'fecha_inicio_vigencia' => 'date',
+            'fecha_fin_vigencia' => 'date',
+        ];
+    }
+
+    /**
      * Tratamiento al que pertenece la tarifa.
      */
     public function tratamiento(): BelongsTo

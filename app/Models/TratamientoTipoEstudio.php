@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TratamientoTipoEstudio extends Model
 {
+    // Valores de la columna momento_clinico (CU19).
+    public const MOMENTOS_CLINICOS = [
+        'previo al tratamiento',
+        'durante el tratamiento',
+        'control posterior',
+    ];
+
     /**
      * Nombre de la tabla.
      */

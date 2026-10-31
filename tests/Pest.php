@@ -10,8 +10,10 @@ use App\Models\Material;
 use App\Models\MetodoPago;
 use App\Models\Paciente;
 use App\Models\PiezaDental;
+use App\Models\Tarifa;
 use App\Models\TipoEstudio;
 use App\Models\Tratamiento;
+use App\Models\TratamientoTipoEstudio;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -169,6 +171,28 @@ function crearPiezaDental(int $fdi): PiezaDental
         'cuadrante' => intdiv($fdi, 10),
         'tipo_pieza' => 'molar',
         'tipo_denticion' => 'permanente',
+    ]);
+}
+
+// Tarifa vigente del tratamiento; $datos reemplaza los valores por defecto.
+function crearTarifa(int $tratamientoId, array $datos = []): Tarifa
+{
+    return Tarifa::create($datos + [
+        'tratamiento_id' => $tratamientoId,
+        'precio' => 100,
+        'fecha_inicio_vigencia' => '2026-01-01',
+        'estado' => 'vigente',
+    ]);
+}
+
+// Estudio requerido de un tratamiento; $datos reemplaza los valores por defecto.
+function crearEstudioRequerido(int $tratamientoId, int $tipoEstudioId, array $datos = []): TratamientoTipoEstudio
+{
+    return TratamientoTipoEstudio::create($datos + [
+        'tratamiento_id' => $tratamientoId,
+        'tipo_estudio_id' => $tipoEstudioId,
+        'obligatorio' => true,
+        'momento_clinico' => 'previo al tratamiento',
     ]);
 }
 

@@ -66,18 +66,13 @@ class Tratamiento extends Model
     }
 
     /**
-     * Tarifa en vigor hoy: estado vigente, ya iniciada y sin vencer (fecha_fin_vigencia null o >= hoy).
-     * Si hubiera más de una, gana la de inicio más reciente.
+     * Tarifa con estado vigente. Si hubiera más de una, gana la de inicio más reciente.
+     * El precio de una fecha concreta lo da TarifaService::precioVigente.
      */
     public function tarifaVigente(): HasOne
     {
         return $this->hasOne(Tarifa::class, 'tratamiento_id')
             ->where('estado', 'vigente')
-            ->whereDate('fecha_inicio_vigencia', '<=', today())
-            ->where(function ($vigencia) {
-                $vigencia->whereNull('fecha_fin_vigencia')
-                    ->orWhereDate('fecha_fin_vigencia', '>=', today());
-            })
             ->orderByDesc('fecha_inicio_vigencia');
     }
 
