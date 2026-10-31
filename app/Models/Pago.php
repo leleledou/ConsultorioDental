@@ -36,6 +36,18 @@ class Pago extends Model
     ];
 
     /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'fecha_pago' => 'date',
+        ];
+    }
+
+    /**
      * Método con el que se hizo el pago.
      */
     public function metodoPago(): BelongsTo

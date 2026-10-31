@@ -131,10 +131,11 @@ class TratamientoAplicadoController extends Controller
 
         $resultado = DB::transaction(function () use ($datos, $request) {
             $tratamiento = TratamientoAplicado::lockForUpdate()->findOrFail($datos['id']);
+            $plan = PlanTratamiento::lockForUpdate()->findOrFail($tratamiento->plan_tratamiento_id);
             $actual = $tratamiento->estado;
             $nuevo = $datos['estado'];
 
-            if ($tratamiento->plan->estado !== 'activo') {
+            if ($plan->estado !== 'activo') {
                 return ['operacion' => 'El plan no está activo.'];
             }
 
@@ -168,7 +169,7 @@ class TratamientoAplicadoController extends Controller
             $tratamiento->save();
 
             if ($nuevo === 'cancelado') {
-                $this->planes->recalcularCosto($tratamiento->plan);
+                $this->planes->recalcularCosto($plan);
             }
 
             BitacoraService::registrar(BitacoraService::CAMBIO_ESTADO_TRATAMIENTO, $request->user()->id, 'tratamientos_aplicados', $tratamiento->id);

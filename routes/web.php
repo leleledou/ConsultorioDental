@@ -13,6 +13,7 @@ use App\Http\Controllers\InicioController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MetodoPagoController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PagoController;
 use App\Http\Controllers\PiezaDentalController;
 use App\Http\Controllers\PlanTratamientoController;
 use App\Http\Controllers\TarifaController;
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\Route;
 /*
  * Rutas de DentalRox - Ciclo 1: Administración de Usuarios y Seguridad, catálogo de
  * especialidades y Gestión de Pacientes. Ciclo 2: catálogo de tratamientos, citas y agenda.
- * Ciclo 3: catálogos clínicos y de servicios, y atención clínica.
+ * Ciclo 3: catálogos clínicos y de servicios, atención clínica y pagos.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -232,6 +233,15 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::post('/tratamientos-aplicados', 'store')->name('tratamientos-aplicados.guardar');
         Route::post('/tratamientos-aplicados/estado', 'cambiarEstado')->name('tratamientos-aplicados.estado');
         Route::get('/tratamientos-aplicados/{id}', 'show')->whereNumber('id')->name('tratamientos-aplicados.mostrar');
+    });
+
+    // CU34 Registrar abono, CU35 Anular abono y CU36 Consultar estado de cuenta.
+    // Los dos roles atienden: sin middleware rol.
+    Route::controller(PagoController::class)->group(function () {
+        Route::get('/pacientes/{paciente}/cuenta', 'estadoCuenta')->whereNumber('paciente')->name('pagos.cuenta');
+        Route::get('/pagos/crear', 'create')->name('pagos.crear');
+        Route::post('/pagos', 'store')->name('pagos.guardar');
+        Route::post('/pagos/anular', 'anular')->name('pagos.anular');
     });
 });
 
