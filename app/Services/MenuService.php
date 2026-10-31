@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
  *   - nombre:     texto visible.
  *   - ruta:       nombre de la ruta, sin parámetros; null si todavía no está
  *                 implementada (se muestra en gris con la etiqueta "Próximo ciclo").
- *   - activa:     patrón de rutas que marca la opción como la actual.
+ *   - activa:     patrón (o lista de patrones) de rutas que marca la opción como la actual.
  *   - solo_admin: RN-05, solo la ve el administrador.
  */
 class MenuService
@@ -24,7 +24,7 @@ class MenuService
      * Devuelve los paquetes con las opciones que el usuario puede ver (RN-05).
      * Un paquete sin opciones visibles para el usuario no se devuelve.
      *
-     * @return list<array{codigo: string, nombre: string, corto: string, descripcion: string, opciones: list<array{nombre: string, ruta: ?string, activa: ?string, solo_admin: bool}>}>
+     * @return list<array{codigo: string, nombre: string, corto: string, descripcion: string, opciones: list<array{nombre: string, ruta: ?string, activa: string|list<string>|null, solo_admin: bool}>}>
      */
     public static function paquetes(User $usuario): array
     {
@@ -72,7 +72,7 @@ class MenuService
                     self::opcion('Tipos de estudio', 'tipos-estudio.listar', 'tipos-estudio.*', true),
                     self::opcion('Materiales', 'materiales.listar', 'materiales.*', true),
                     self::opcion('Antecedentes médicos', 'antecedentes.listar', 'antecedentes.*', true),
-                    self::opcion('Piezas y estados', 'piezas-dentales.listar', 'piezas-dentales.*', true),
+                    self::opcion('Piezas y estados', 'estados-pieza.listar', ['estados-pieza.*', 'piezas-dentales.*'], true),
                     self::opcion('Métodos de pago', 'metodos-pago.listar', 'metodos-pago.*', true),
                 ],
             ],
@@ -117,7 +117,7 @@ class MenuService
 
     // Arma una opción del menú. Sin ruta, o si la ruta aún no existe, la opción queda
     // inhabilitada ("Próximo ciclo").
-    private static function opcion(string $nombre, ?string $ruta = null, ?string $activa = null, bool $soloAdmin = false): array
+    private static function opcion(string $nombre, ?string $ruta = null, string|array|null $activa = null, bool $soloAdmin = false): array
     {
         $existe = $ruta !== null && Route::has($ruta);
 

@@ -1,11 +1,18 @@
 <?php
 
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\AntecedenteMedicoController;
 use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\CitaController;
+use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\EspecialidadController;
+use App\Http\Controllers\EstadoPiezaController;
 use App\Http\Controllers\InicioController;
+use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\MetodoPagoController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PiezaDentalController;
+use App\Http\Controllers\TipoEstudioController;
 use App\Http\Controllers\TratamientoController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 /*
  * Rutas de DentalRox - Ciclo 1: Administración de Usuarios y Seguridad, catálogo de
  * especialidades y Gestión de Pacientes. Ciclo 2: catálogo de tratamientos, citas y agenda.
+ * Ciclo 3: catálogos clínicos y de servicios.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -72,6 +80,78 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
             Route::post('/delete', 'delete')->name('tratamientos.eliminar'); // dar de baja
             Route::post('/activar', 'activar')->name('tratamientos.habilitar');
             Route::get('/{id}', 'show')->whereNumber('id')->name('tratamientos.mostrar');
+        });
+
+    // CU17 Gestionar diagnósticos.
+    Route::prefix('diagnosticos')->middleware('rol:administrador')
+        ->controller(DiagnosticoController::class)->group(function () {
+            Route::get('/', 'index')->name('diagnosticos.listar');
+            Route::post('/', 'store')->name('diagnosticos.guardar');
+            Route::post('/update', 'update')->name('diagnosticos.modificar');
+            Route::post('/delete', 'delete')->name('diagnosticos.eliminar'); // dar de baja
+            Route::post('/activar', 'activar')->name('diagnosticos.habilitar');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('diagnosticos.mostrar');
+        });
+
+    // CU18 Gestionar tipos de estudio.
+    Route::prefix('tipos-estudio')->middleware('rol:administrador')
+        ->controller(TipoEstudioController::class)->group(function () {
+            Route::get('/', 'index')->name('tipos-estudio.listar');
+            Route::post('/', 'store')->name('tipos-estudio.guardar');
+            Route::post('/update', 'update')->name('tipos-estudio.modificar');
+            Route::post('/delete', 'delete')->name('tipos-estudio.eliminar'); // dar de baja
+            Route::post('/activar', 'activar')->name('tipos-estudio.habilitar');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('tipos-estudio.mostrar');
+        });
+
+    // CU20 Gestionar materiales.
+    Route::prefix('materiales')->middleware('rol:administrador')
+        ->controller(MaterialController::class)->group(function () {
+            Route::get('/', 'index')->name('materiales.listar');
+            Route::post('/', 'store')->name('materiales.guardar');
+            Route::post('/update', 'update')->name('materiales.modificar');
+            Route::post('/delete', 'delete')->name('materiales.eliminar'); // dar de baja
+            Route::post('/activar', 'activar')->name('materiales.habilitar');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('materiales.mostrar');
+        });
+
+    // CU21 Gestionar antecedentes médicos. Sin estado: delete borra de verdad.
+    Route::prefix('antecedentes')->middleware('rol:administrador')
+        ->controller(AntecedenteMedicoController::class)->group(function () {
+            Route::get('/', 'index')->name('antecedentes.listar');
+            Route::post('/', 'store')->name('antecedentes.guardar');
+            Route::post('/update', 'update')->name('antecedentes.modificar');
+            Route::post('/delete', 'delete')->name('antecedentes.eliminar');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('antecedentes.mostrar');
+        });
+
+    // CU22 Gestionar piezas dentales y estados de pieza: estados de pieza.
+    Route::prefix('estados-pieza')->middleware('rol:administrador')
+        ->controller(EstadoPiezaController::class)->group(function () {
+            Route::get('/', 'index')->name('estados-pieza.listar');
+            Route::post('/', 'store')->name('estados-pieza.guardar');
+            Route::post('/update', 'update')->name('estados-pieza.modificar');
+            Route::post('/delete', 'delete')->name('estados-pieza.eliminar'); // dar de baja
+            Route::post('/activar', 'activar')->name('estados-pieza.habilitar');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('estados-pieza.mostrar');
+        });
+
+    // CU22 Gestionar piezas dentales y estados de pieza: piezas dentales (solo consulta).
+    Route::prefix('piezas-dentales')->middleware('rol:administrador')
+        ->controller(PiezaDentalController::class)->group(function () {
+            Route::get('/', 'index')->name('piezas-dentales.listar');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('piezas-dentales.mostrar');
+        });
+
+    // CU37 Gestionar métodos de pago.
+    Route::prefix('metodos-pago')->middleware('rol:administrador')
+        ->controller(MetodoPagoController::class)->group(function () {
+            Route::get('/', 'index')->name('metodos-pago.listar');
+            Route::post('/', 'store')->name('metodos-pago.guardar');
+            Route::post('/update', 'update')->name('metodos-pago.modificar');
+            Route::post('/delete', 'delete')->name('metodos-pago.eliminar'); // dar de baja
+            Route::post('/activar', 'activar')->name('metodos-pago.habilitar');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('metodos-pago.mostrar');
         });
 
     // CU08 Gestionar pacientes y CU09 Buscar paciente.

@@ -1,9 +1,16 @@
 <?php
 
+use App\Models\AntecedenteMedico;
 use App\Models\Cita;
+use App\Models\Diagnostico;
 use App\Models\Especialidad;
 use App\Models\EstadoCita;
+use App\Models\EstadoPieza;
+use App\Models\Material;
+use App\Models\MetodoPago;
 use App\Models\Paciente;
+use App\Models\PiezaDental;
+use App\Models\TipoEstudio;
 use App\Models\Tratamiento;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,4 +96,90 @@ function crearCita(array $datos = []): Cita
         'estado_cita_id' => EstadoCita::idDe($estado),
         'fecha_registro' => today(),
     ])->refresh();
+}
+
+// Diagnóstico activo del catálogo; $datos reemplaza los valores por defecto.
+function crearDiagnostico(array $datos = []): Diagnostico
+{
+    static $numero = 0;
+    $numero++;
+
+    return Diagnostico::create($datos + [
+        'codigo' => "D{$numero}",
+        'nombre' => "Diagnóstico {$numero}",
+        'estado' => 'activo',
+    ]);
+}
+
+// Tipo de estudio activo del catálogo; $datos reemplaza los valores por defecto.
+function crearTipoEstudio(array $datos = []): TipoEstudio
+{
+    static $numero = 0;
+    $numero++;
+
+    return TipoEstudio::create($datos + [
+        'nombre' => "Tipo de estudio {$numero}",
+        'estado' => 'activo',
+    ]);
+}
+
+// Material activo del catálogo; $datos reemplaza los valores por defecto.
+function crearMaterial(array $datos = []): Material
+{
+    static $numero = 0;
+    $numero++;
+
+    return Material::create($datos + [
+        'nombre' => "Material {$numero}",
+        'categoria' => 'restaurador',
+        'unidad_medida' => 'unidad',
+        'estado' => 'activo',
+    ]);
+}
+
+// Antecedente médico del catálogo; $datos reemplaza los valores por defecto.
+function crearAntecedente(array $datos = []): AntecedenteMedico
+{
+    static $numero = 0;
+    $numero++;
+
+    return AntecedenteMedico::create($datos + ['nombre' => "Antecedente {$numero}"]);
+}
+
+// Estado de pieza activo del catálogo; $datos reemplaza los valores por defecto.
+function crearEstadoPieza(array $datos = []): EstadoPieza
+{
+    static $numero = 0;
+    $numero++;
+
+    return EstadoPieza::create($datos + [
+        'codigo' => "E{$numero}",
+        'nombre' => "Estado {$numero}",
+        'estado' => 'activo',
+    ]);
+}
+
+// Pieza dental con ese código FDI (el id de la tabla es el mismo código).
+function crearPiezaDental(int $fdi): PiezaDental
+{
+    return PiezaDental::create([
+        'id' => $fdi,
+        'codigo_fdi' => $fdi,
+        'nombre' => "Pieza {$fdi}",
+        'cuadrante' => intdiv($fdi, 10),
+        'tipo_pieza' => 'molar',
+        'tipo_denticion' => 'permanente',
+    ]);
+}
+
+// Método de pago activo del catálogo; $datos reemplaza los valores por defecto.
+function crearMetodoPago(array $datos = []): MetodoPago
+{
+    static $numero = 0;
+    $numero++;
+
+    return MetodoPago::create($datos + [
+        'nombre' => "Método {$numero}",
+        'estado' => 'activo',
+    ]);
 }
