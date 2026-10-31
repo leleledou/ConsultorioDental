@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MetodoPago;
 use App\Models\Paciente;
 use App\Models\Pago;
+use App\Models\PlanTratamiento;
 use App\Models\TratamientoAplicado;
 use App\Services\BitacoraService;
 use App\Services\PagoService;
@@ -92,7 +93,9 @@ class PagoController extends Controller
 
         // Se reintenta (3) si dos abonos simultáneos chocan al generar el comprobante.
         $resultado = DB::transaction(function () use ($datos, $request) {
-            $tratamiento = TratamientoAplicado::with('plan')->lockForUpdate()->findOrFail($datos['tratamiento_aplicado_id']);
+            $tratamiento = TratamientoAplicado::lockForUpdate()->findOrFail($datos['tratamiento_aplicado_id']);
+            $plan = PlanTratamiento::lockForUpdate()->findOrFail($tratamiento->plan_tratamiento_id);
+            $tratamiento->setRelation('plan', $plan);
 
             // Otra petición pudo cancelar el tratamiento o abonar mientras tanto.
             if ($this->estaCancelado($tratamiento)) {
@@ -192,7 +195,7 @@ class PagoController extends Controller
         return [
             'tratamiento_aplicado_id' => ['required', 'integer', 'exists:tratamientos_aplicados,id'],
             // Límite superior: la columna es decimal(10,2).
-            'monto' => ['bail', 'required', 'numeric', 'gt:0', 'max:99999999.99'],
+            'monto' => ['bail', 'required', 'numeric', 'decimal:0,2', 'gt:0', 'max:99999999.99'],
             'fecha_pago' => ['bail', 'required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'metodo_pago_id' => ['required', 'integer', Rule::exists('metodos_pago', 'id')->where('estado', 'activo')],
             'observaciones' => ['nullable', 'string'],
@@ -214,6 +217,7 @@ class PagoController extends Controller
             'tratamiento_aplicado_id.exists' => 'El tratamiento indicado no existe.',
             'monto.required' => 'El campo Monto es obligatorio.',
             'monto.numeric' => 'El monto debe ser un número.',
+            'monto.decimal' => 'El monto debe tener como máximo 2 decimales.',
             'monto.gt' => 'El monto debe ser mayor a 0.',
             'monto.max' => 'El monto no puede superar 99999999.99.',
             'fecha_pago.required' => 'El campo Fecha de pago es obligatorio.',

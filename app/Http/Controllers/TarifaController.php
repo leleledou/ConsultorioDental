@@ -92,7 +92,7 @@ class TarifaController extends Controller
         return [
             'tratamiento_id' => ['required', 'integer', 'exists:tratamientos,id'],
             // Límite superior: la columna es decimal(10,2).
-            'precio' => ['bail', 'required', 'numeric', 'gt:0', 'max:99999999.99'],
+            'precio' => ['bail', 'required', 'numeric', 'decimal:0,2', 'gt:0', 'max:99999999.99'],
             'fecha_inicio_vigencia' => ['required', 'date_format:Y-m-d'],
         ];
     }
@@ -106,6 +106,7 @@ class TarifaController extends Controller
             'tratamiento_id.exists' => 'El tratamiento indicado no existe.',
             'precio.required' => 'El precio debe ser mayor a 0',
             'precio.numeric' => 'El precio debe ser mayor a 0',
+            'precio.decimal' => 'El precio debe tener como máximo 2 decimales.',
             'precio.gt' => 'El precio debe ser mayor a 0',
             'precio.max' => 'El precio no puede superar 99999999.99.',
             'fecha_inicio_vigencia.required' => 'El campo Inicio de vigencia es obligatorio.',

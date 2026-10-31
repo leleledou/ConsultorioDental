@@ -163,6 +163,7 @@ it('A1: rechaza datos no válidos junto al campo y conserva los datos', function
     expect(TratamientoAplicado::count())->toBe(0);
 })->with([
     'costo negativo' => ['costo_acordado', -1, 'El costo acordado no puede ser negativo.'],
+    'costo con 3 decimales' => ['costo_acordado', '250.123', 'El costo acordado debe tener como máximo 2 decimales.'],
     'sesiones 0' => ['sesiones_planificadas', 0, 'Debe haber al menos 1 sesión planificada.'],
     'sin diagnóstico' => ['diagnostico_id', '', 'Debe seleccionar el diagnóstico.'],
     'sin fecha' => ['fecha_inicio', '', 'El campo Fecha de inicio es obligatorio.'],

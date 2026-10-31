@@ -15,6 +15,7 @@ use App\Models\Pago;
 use App\Models\PiezaDental;
 use App\Models\PlanTratamiento;
 use App\Models\Sesion;
+use App\Models\SesionMaterial;
 use App\Models\Tarifa;
 use App\Models\TipoEstudio;
 use App\Models\Tratamiento;
@@ -262,6 +263,12 @@ function crearPago(int $tratamientoAplicadoId, array $datos = []): Pago
         'fecha_pago' => today(),
         'estado' => 'vigente',
     ]);
+}
+
+// Material usado en una sesión.
+function crearSesionMaterial(int $sesionId, int $materialId, float $cantidad = 1): SesionMaterial
+{
+    return SesionMaterial::create(['sesion_id' => $sesionId, 'material_id' => $materialId, 'cantidad' => $cantidad]);
 }
 
 // Estudio diagnóstico cargado para el paciente.

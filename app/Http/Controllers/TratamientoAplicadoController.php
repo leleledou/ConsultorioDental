@@ -223,7 +223,7 @@ class TratamientoAplicadoController extends Controller
             'pieza_dental_id' => ['nullable', 'integer', 'exists:piezas_dentales,id'],
             'diagnostico_id' => ['required', 'integer', Rule::exists('diagnosticos', 'id')->where('estado', 'activo')],
             'observacion_diagnostica' => ['nullable', 'string'],
-            'costo_acordado' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
+            'costo_acordado' => ['bail', 'required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999.99'],
             'sesiones_planificadas' => ['required', 'integer', 'min:1', 'max:65535'],
             'fecha_inicio' => ['required', 'date_format:Y-m-d'],
         ];
@@ -250,6 +250,7 @@ class TratamientoAplicadoController extends Controller
             'observacion_diagnostica.string' => 'La observación diagnóstica debe ser un texto.',
             'costo_acordado.required' => 'El campo Costo acordado es obligatorio.',
             'costo_acordado.numeric' => 'El costo acordado debe ser un número.',
+            'costo_acordado.decimal' => 'El costo acordado debe tener como máximo 2 decimales.',
             'costo_acordado.min' => 'El costo acordado no puede ser negativo.',
             'costo_acordado.max' => 'El costo acordado no puede superar 99999999.99.',
             'sesiones_planificadas.required' => 'El campo Sesiones planificadas es obligatorio.',

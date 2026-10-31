@@ -91,6 +91,14 @@ it('A1: rechaza un precio no válido y no cambia nada', function ($precio) {
         ->and($vigente->fresh()->estado)->toBe('vigente');
 })->with(['cero' => 0, 'negativo' => -10, 'vacío' => '', 'texto' => 'abc']);
 
+it('rechaza un precio con más de 2 decimales', function () {
+    $this->actingAs($this->admin)
+        ->post(route('tarifas.guardar'), datosTarifa($this->tratamiento->id, ['precio' => '150.123']))
+        ->assertSessionHasErrors(['precio' => 'El precio debe tener como máximo 2 decimales.']);
+
+    expect(Tarifa::count())->toBe(0);
+});
+
 it('rechaza un precio mayor al de la columna', function () {
     $this->actingAs($this->admin)
         ->post(route('tarifas.guardar'), datosTarifa($this->tratamiento->id, ['precio' => 100000000]))

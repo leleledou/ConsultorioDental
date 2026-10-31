@@ -2,8 +2,11 @@
 
 use App\Models\Bitacora;
 use App\Models\Pago;
+use App\Models\PlanTratamiento;
 use App\Services\BitacoraService;
 use App\Services\PagoService;
+use Illuminate\Database\Events\TransactionBeginning;
+use Illuminate\Support\Facades\Event;
 
 /*
  * CU34 Registrar abono (RF-75, RF-76). Pruebas transaccionales.
@@ -94,6 +97,7 @@ it('A1: rechaza datos no válidos junto al campo y conserva los datos', function
     'monto 0' => ['monto', 0, 'El monto debe ser mayor a 0.'],
     'monto negativo' => ['monto', -5, 'El monto debe ser mayor a 0.'],
     'monto vacío' => ['monto', '', 'El campo Monto es obligatorio.'],
+    'monto con 3 decimales' => ['monto', '10.123', 'El monto debe tener como máximo 2 decimales.'],
     'sin método' => ['metodo_pago_id', '', 'Debe seleccionar el método de pago.'],
 ]);
 
@@ -150,6 +154,18 @@ it('rechaza abonar a un tratamiento o plan cancelado', function (string $caso) {
 
     expect(Pago::count())->toBe(0);
 })->with(['plan', 'tratamiento']);
+
+it('revisa el plan bloqueado dentro de la transacción, no el leído antes', function () {
+    $this->actingAs($this->usuario);
+
+    // La validación previa ya pasó cuando otra petición cancela el plan.
+    Event::listen(TransactionBeginning::class, fn () => PlanTratamiento::whereKey($this->plan->id)->update(['estado' => 'cancelado']));
+
+    $this->post(route('pagos.guardar'), datosAbono($this->tratamiento->id, $this->metodo->id))
+        ->assertSessionHasErrors(['operacion' => 'El tratamiento no tiene saldo pendiente para registrar abonos.']);
+
+    expect(Pago::count())->toBe(0);
+});
 
 it('un plan concluido admite abonos', function () {
     $this->plan->update(['estado' => 'concluido']);
