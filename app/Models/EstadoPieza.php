@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EstadoPieza extends Model
 {
@@ -28,4 +29,12 @@ class EstadoPieza extends Model
         'color_referencia',
         'estado',
     ];
+
+    /**
+     * Detalles de odontograma con este estado.
+     */
+    public function detallesOdontograma(): HasMany
+    {
+        return $this->hasMany(DetalleOdontograma::class, 'estado_pieza_id');
+    }
 }

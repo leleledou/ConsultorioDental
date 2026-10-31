@@ -86,7 +86,7 @@
                             </div>
                         </dl>
                         <p class="mt-5 rounded-lg bg-brand-50 p-3 text-sm text-brand-900">
-                            Los antecedentes, el odontograma y los tratamientos se registrarán en el paquete de Atención Clínica.
+                            Los antecedentes y demás datos clínicos se consultan desde el enlace «Historia clínica».
                         </p>
                     @else
                         <p class="mt-4 text-sm text-ink-soft">El paciente no tiene historia clínica.</p>
@@ -97,6 +97,18 @@
             <div class="flex flex-wrap items-center gap-3">
                 <a href="{{ route('pacientes.listar') }}" class="btn btn-secondary">
                     <x-icon name="arrow-left" class="h-4 w-4" /> Volver a pacientes
+                </a>
+
+                {{-- CU23 Gestionar historia clínica y CU27 Gestionar plan de tratamiento --}}
+                <a href="{{ route('historias.mostrar', $paciente->id) }}" class="btn btn-secondary">
+                    Historia clínica
+                </a>
+                <a href="{{ route('planes.listar', ['paciente_id' => $paciente->id]) }}" class="btn btn-secondary">
+                    Planes de tratamiento
+                </a>
+                {{-- CU36 Consultar estado de cuenta --}}
+                <a href="{{ route('pagos.cuenta', $paciente->id) }}" class="btn btn-secondary">
+                    Estado de cuenta
                 </a>
 
                 {{-- CU08: inhabilitar / habilitar desde la ficha (el id viaja oculto) --}}

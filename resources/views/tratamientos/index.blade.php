@@ -119,6 +119,14 @@
                                                     Modificar
                                                 </x-secondary-button>
 
+                                                {{-- CU16 Gestionar tarifas y CU19 Definir estudios requeridos --}}
+                                                <a href="{{ route('tarifas.mostrar', $t->id) }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                    Tarifas
+                                                </a>
+                                                <a href="{{ route('tratamientos.estudios', $t->id) }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                    Estudios requeridos
+                                                </a>
+
                                                 {{-- Dar de baja / habilitar (el id viaja oculto; no se borra, RNF-06) --}}
                                                 @if ($t->estaDisponible())
                                                     <form method="POST" action="{{ route('tratamientos.eliminar') }}"

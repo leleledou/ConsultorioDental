@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MetodoPago extends Model
 {
@@ -26,4 +27,12 @@ class MetodoPago extends Model
         'descripcion',
         'estado',
     ];
+
+    /**
+     * Pagos hechos con este método.
+     */
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(Pago::class, 'metodo_pago_id');
+    }
 }

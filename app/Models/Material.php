@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Material extends Model
 {
@@ -28,4 +29,12 @@ class Material extends Model
         'unidad_medida',
         'estado',
     ];
+
+    /**
+     * Usos del material en las sesiones.
+     */
+    public function sesionesMateriales(): HasMany
+    {
+        return $this->hasMany(SesionMaterial::class, 'material_id');
+    }
 }

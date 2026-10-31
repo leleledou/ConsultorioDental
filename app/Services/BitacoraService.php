@@ -67,6 +67,66 @@ class BitacoraService
     // Acción de CU12 Actualizar estado de cita.
     public const CAMBIO_ESTADO_CITA = 'CAMBIO_ESTADO_CITA';
 
+    // Acción del catálogo de tarifas.
+    public const CREAR_TARIFA = 'CREAR_TARIFA';
+
+    // Acciones del catálogo de diagnósticos.
+    public const CREAR_DIAGNOSTICO = 'CREAR_DIAGNOSTICO';
+    public const MODIFICAR_DIAGNOSTICO = 'MODIFICAR_DIAGNOSTICO';
+    public const BAJA_DIAGNOSTICO = 'BAJA_DIAGNOSTICO';
+    public const HABILITAR_DIAGNOSTICO = 'HABILITAR_DIAGNOSTICO';
+
+    // Acciones del catálogo de tipos de estudio.
+    public const CREAR_TIPO_ESTUDIO = 'CREAR_TIPO_ESTUDIO';
+    public const MODIFICAR_TIPO_ESTUDIO = 'MODIFICAR_TIPO_ESTUDIO';
+    public const BAJA_TIPO_ESTUDIO = 'BAJA_TIPO_ESTUDIO';
+    public const HABILITAR_TIPO_ESTUDIO = 'HABILITAR_TIPO_ESTUDIO';
+
+    // Acciones de los estudios requeridos por tratamiento.
+    public const ASIGNAR_ESTUDIO_REQUERIDO = 'ASIGNAR_ESTUDIO_REQUERIDO';
+    public const MODIFICAR_ESTUDIO_REQUERIDO = 'MODIFICAR_ESTUDIO_REQUERIDO';
+    public const QUITAR_ESTUDIO_REQUERIDO = 'QUITAR_ESTUDIO_REQUERIDO';
+
+    // Acciones del catálogo de materiales.
+    public const CREAR_MATERIAL = 'CREAR_MATERIAL';
+    public const MODIFICAR_MATERIAL = 'MODIFICAR_MATERIAL';
+    public const BAJA_MATERIAL = 'BAJA_MATERIAL';
+    public const HABILITAR_MATERIAL = 'HABILITAR_MATERIAL';
+
+    // Acciones del catálogo de antecedentes médicos.
+    public const CREAR_ANTECEDENTE = 'CREAR_ANTECEDENTE';
+    public const MODIFICAR_ANTECEDENTE = 'MODIFICAR_ANTECEDENTE';
+    public const ELIMINAR_ANTECEDENTE = 'ELIMINAR_ANTECEDENTE';
+
+    // Acciones del catálogo de estados de pieza.
+    public const CREAR_ESTADO_PIEZA = 'CREAR_ESTADO_PIEZA';
+    public const MODIFICAR_ESTADO_PIEZA = 'MODIFICAR_ESTADO_PIEZA';
+    public const BAJA_ESTADO_PIEZA = 'BAJA_ESTADO_PIEZA';
+    public const HABILITAR_ESTADO_PIEZA = 'HABILITAR_ESTADO_PIEZA';
+
+    // Acciones del catálogo de métodos de pago.
+    public const CREAR_METODO_PAGO = 'CREAR_METODO_PAGO';
+    public const MODIFICAR_METODO_PAGO = 'MODIFICAR_METODO_PAGO';
+    public const BAJA_METODO_PAGO = 'BAJA_METODO_PAGO';
+    public const HABILITAR_METODO_PAGO = 'HABILITAR_METODO_PAGO';
+
+    // Acciones de la historia clínica y sus antecedentes.
+    public const MODIFICAR_HISTORIA = 'MODIFICAR_HISTORIA';
+    public const ASIGNAR_ANTECEDENTE = 'ASIGNAR_ANTECEDENTE';
+    public const MODIFICAR_ANTECEDENTE_HISTORIA = 'MODIFICAR_ANTECEDENTE_HISTORIA';
+    public const QUITAR_ANTECEDENTE = 'QUITAR_ANTECEDENTE';
+
+    // Acciones del plan de tratamiento.
+    public const CREAR_PLAN = 'CREAR_PLAN';
+    public const MODIFICAR_PLAN = 'MODIFICAR_PLAN';
+    public const CANCELAR_PLAN = 'CANCELAR_PLAN';
+    public const REGISTRAR_TRATAMIENTO_APLICADO = 'REGISTRAR_TRATAMIENTO_APLICADO';
+    public const CAMBIO_ESTADO_TRATAMIENTO = 'CAMBIO_ESTADO_TRATAMIENTO';
+
+    // Acciones de los abonos.
+    public const REGISTRAR_ABONO = 'REGISTRAR_ABONO';
+    public const ANULAR_ABONO = 'ANULAR_ABONO';
+
     /**
      * Devuelve la lista de los valores de todas las acciones (todas las constantes).
      * Se usa para validar el filtro "accion" de CU07 Consultar bitácora.

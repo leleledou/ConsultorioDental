@@ -3,63 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\PiezaDental;
-use Illuminate\Http\Request;
+use Illuminate\View\View;
 
+/**
+ * CU22 Gestionar piezas dentales y estados de pieza. Solo para el administrador.
+ * Las piezas son un catálogo fijo: solo se consultan.
+ */
 class PiezaDentalController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // MOSTRAR todas las piezas dentales por código FDI, sin paginar.
+    public function index(): View
     {
-        //
+        $piezas = PiezaDental::orderBy('codigo_fdi')->get();
+
+        return view('piezas-dentales.index', compact('piezas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // MOSTRAR UNA pieza dental. Su id es el código FDI.
+    public function show($id): View
     {
-        //
-    }
+        $pieza = PiezaDental::findOrFail($id);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(PiezaDental $piezaDental)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(PiezaDental $piezaDental)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, PiezaDental $piezaDental)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(PiezaDental $piezaDental)
-    {
-        //
+        return view('piezas-dentales.show', compact('pieza'));
     }
 }

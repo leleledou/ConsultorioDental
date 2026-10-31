@@ -60,9 +60,13 @@ it('no cobra más que el costo acordado de cada tratamiento aplicado', function 
     expect($excedidos)->toBeEmpty();
 });
 
-it('calcula el costo total de cada plan como la suma de sus tratamientos aplicados', function () {
+it('calcula el costo total de cada plan como la suma de sus tratamientos no cancelados', function () {
+    // El filtro va en el join: un plan con todos sus tratamientos cancelados debe sumar 0.
     $descuadrados = DB::table('planes_tratamiento as pt')
-        ->leftJoin('tratamientos_aplicados as ta', 'ta.plan_tratamiento_id', '=', 'pt.id')
+        ->leftJoin('tratamientos_aplicados as ta', function ($join) {
+            $join->on('ta.plan_tratamiento_id', '=', 'pt.id')
+                ->where('ta.estado', '!=', 'cancelado');
+        })
         ->groupBy('pt.id', 'pt.costo_total')
         ->havingRaw('pt.costo_total <> COALESCE(SUM(ta.costo_acordado), 0)')
         ->pluck('pt.id');

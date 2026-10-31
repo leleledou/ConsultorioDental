@@ -84,6 +84,14 @@ class Paciente extends Model
     }
 
     /**
+     * Planes de tratamiento del paciente.
+     */
+    public function planes(): HasMany
+    {
+        return $this->hasMany(PlanTratamiento::class, 'paciente_id');
+    }
+
+    /**
      * CU09 Buscar paciente: filtra por CI, nombres o apellidos.
      * La usan la lista de pacientes (CU09) y el formulario de programar cita (CU10).
      * Uso: Paciente::buscar($texto)->...

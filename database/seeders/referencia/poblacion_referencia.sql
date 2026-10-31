@@ -290,7 +290,7 @@ INSERT INTO plan_tratamiento (id, paciente_id, odontologo_id, fecha_creacion, de
     (5, 6, 1, '2026-07-10', 'Prevención y restauración en dentición mixta', 300.0, 'concluido'),
     (6, 2, 2, '2026-07-28', 'Exodoncia quirúrgica del tercer molar 38', 600.0, 'activo'),
     (7, 3, 2, '2026-05-12', 'Rehabilitación estética del sector anterior', 1900.0, 'activo'),
-    (8, 4, 1, '2026-03-28', 'Profilaxis y control preventivo', 150.0, 'cancelado'),
+    (8, 4, 1, '2026-03-28', 'Profilaxis y control preventivo', 0.00, 'cancelado'),
     (9, 9, 2, '2025-10-08', 'Tratamiento periodontal y restauración', 530.0, 'concluido'),
     (10, 10, 1, '2025-10-16', 'Rehabilitación del sector posterior', 1300.0, 'concluido'),
     (11, 11, 1, '2025-11-05', 'Prevención y control de erupción', 230.0, 'concluido'),

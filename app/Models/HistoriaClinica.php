@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class HistoriaClinica extends Model
 {
@@ -47,5 +48,14 @@ class HistoriaClinica extends Model
     public function paciente(): BelongsTo
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
+    }
+
+    /**
+     * Antecedentes médicos de la historia, con los datos de la tabla intermedia.
+     */
+    public function antecedentes(): BelongsToMany
+    {
+        return $this->belongsToMany(AntecedenteMedico::class, 'historias_antecedentes', 'historia_clinica_id', 'antecedente_medico_id')
+            ->withPivot('id', 'observacion', 'fecha_registro');
     }
 }
