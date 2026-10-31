@@ -6,13 +6,19 @@ use App\Models\Diagnostico;
 use App\Models\Especialidad;
 use App\Models\EstadoCita;
 use App\Models\EstadoPieza;
+use App\Models\EstudioDiagnostico;
+use App\Models\HistoriaClinica;
 use App\Models\Material;
 use App\Models\MetodoPago;
 use App\Models\Paciente;
+use App\Models\Pago;
 use App\Models\PiezaDental;
+use App\Models\PlanTratamiento;
+use App\Models\Sesion;
 use App\Models\Tarifa;
 use App\Models\TipoEstudio;
 use App\Models\Tratamiento;
+use App\Models\TratamientoAplicado;
 use App\Models\TratamientoTipoEstudio;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -193,6 +199,80 @@ function crearEstudioRequerido(int $tratamientoId, int $tipoEstudioId, array $da
         'tipo_estudio_id' => $tipoEstudioId,
         'obligatorio' => true,
         'momento_clinico' => 'previo al tratamiento',
+    ]);
+}
+
+// Historia clínica del paciente.
+function crearHistoria(int $pacienteId): HistoriaClinica
+{
+    return HistoriaClinica::create(['paciente_id' => $pacienteId, 'fecha_apertura' => today()]);
+}
+
+// Plan activo; crea el paciente y el odontólogo si no se indican.
+function crearPlan(array $datos = []): PlanTratamiento
+{
+    return PlanTratamiento::create($datos + [
+        'paciente_id' => crearPaciente()->id,
+        'odontologo_id' => crearUsuario()->id,
+        'fecha_creacion' => today(),
+        'costo_total' => 0,
+        'estado' => 'activo',
+    ]);
+}
+
+// Tratamiento aplicado planificado de una sesión; crea lo que no se indique.
+function crearTratamientoAplicado(array $datos = []): TratamientoAplicado
+{
+    return TratamientoAplicado::create($datos + [
+        'plan_tratamiento_id' => crearPlan()->id,
+        'tratamiento_id' => crearTratamiento()->id,
+        'odontologo_id' => crearUsuario()->id,
+        'diagnostico_id' => crearDiagnostico()->id,
+        'costo_acordado' => 100,
+        'sesiones_planificadas' => 1,
+        'fecha_inicio' => today(),
+        'estado' => 'planificado',
+    ]);
+}
+
+// Sesión realizada del tratamiento aplicado; $datos reemplaza los valores por defecto.
+function crearSesion(int $tratamientoAplicadoId, array $datos = []): Sesion
+{
+    static $numero = 0;
+    $numero++;
+
+    return Sesion::create($datos + [
+        'tratamiento_aplicado_id' => $tratamientoAplicadoId,
+        'odontologo_id' => crearUsuario()->id,
+        'numero_sesion' => $numero,
+        'fecha' => today(),
+        'duracion_real_minutos' => 30,
+        'estado' => 'realizada',
+    ]);
+}
+
+// Pago vigente del tratamiento aplicado; $datos reemplaza los valores por defecto.
+function crearPago(int $tratamientoAplicadoId, array $datos = []): Pago
+{
+    return Pago::create($datos + [
+        'tratamiento_aplicado_id' => $tratamientoAplicadoId,
+        'metodo_pago_id' => crearMetodoPago()->id,
+        'odontologo_id' => crearUsuario()->id,
+        'monto' => 50,
+        'fecha_pago' => today(),
+        'estado' => 'vigente',
+    ]);
+}
+
+// Estudio diagnóstico cargado para el paciente.
+function crearEstudioDiagnostico(int $pacienteId, int $tipoEstudioId): EstudioDiagnostico
+{
+    return EstudioDiagnostico::create([
+        'paciente_id' => $pacienteId,
+        'tipo_estudio_id' => $tipoEstudioId,
+        'odontologo_id' => crearUsuario()->id,
+        'fecha_estudio' => today(),
+        'fecha_registro' => today(),
     ]);
 }
 

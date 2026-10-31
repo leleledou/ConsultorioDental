@@ -99,7 +99,7 @@
                         </div>
                     </dl>
                     <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                        Los antecedentes, el odontograma y los tratamientos se registrarán en el paquete de Atención Clínica.
+                        Los antecedentes y demás datos clínicos se consultan desde el enlace «Historia clínica».
                     </p>
                 @else
                     <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">El paciente no tiene historia clínica.</p>
@@ -109,6 +109,14 @@
             <div class="flex flex-wrap items-center gap-4">
                 <a href="{{ route('pacientes.listar') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
                     Volver a pacientes
+                </a>
+
+                {{-- CU23 Gestionar historia clínica y CU27 Gestionar plan de tratamiento --}}
+                <a href="{{ route('historias.mostrar', $paciente->id) }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Historia clínica
+                </a>
+                <a href="{{ route('planes.listar', ['paciente_id' => $paciente->id]) }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Planes de tratamiento
                 </a>
 
                 {{-- CU08: inhabilitar / habilitar desde la ficha (el id viaja oculto) --}}

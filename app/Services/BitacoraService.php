@@ -118,6 +118,7 @@ class BitacoraService
 
     // Acciones del plan de tratamiento.
     public const CREAR_PLAN = 'CREAR_PLAN';
+    public const MODIFICAR_PLAN = 'MODIFICAR_PLAN';
     public const CANCELAR_PLAN = 'CANCELAR_PLAN';
     public const REGISTRAR_TRATAMIENTO_APLICADO = 'REGISTRAR_TRATAMIENTO_APLICADO';
     public const CAMBIO_ESTADO_TRATAMIENTO = 'CAMBIO_ESTADO_TRATAMIENTO';

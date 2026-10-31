@@ -39,6 +39,19 @@ class TratamientoAplicado extends Model
     ];
 
     /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'fecha_inicio' => 'date',
+            'fecha_fin' => 'date',
+        ];
+    }
+
+    /**
      * Tratamiento del catálogo que se aplica.
      */
     public function tratamiento(): BelongsTo

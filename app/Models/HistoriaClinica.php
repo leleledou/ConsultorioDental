@@ -56,6 +56,6 @@ class HistoriaClinica extends Model
     public function antecedentes(): BelongsToMany
     {
         return $this->belongsToMany(AntecedenteMedico::class, 'historias_antecedentes', 'historia_clinica_id', 'antecedente_medico_id')
-            ->withPivot('observacion', 'fecha_registro');
+            ->withPivot('id', 'observacion', 'fecha_registro');
     }
 }

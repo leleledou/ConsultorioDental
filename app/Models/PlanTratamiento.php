@@ -33,6 +33,18 @@ class PlanTratamiento extends Model
     ];
 
     /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'fecha_creacion' => 'date',
+        ];
+    }
+
+    /**
      * Tratamientos aplicados del plan.
      */
     public function tratamientosAplicados(): HasMany

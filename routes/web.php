@@ -7,13 +7,17 @@ use App\Http\Controllers\CitaController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\EstadoPiezaController;
+use App\Http\Controllers\HistoriaAntecedenteController;
+use App\Http\Controllers\HistoriaClinicaController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MetodoPagoController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\PiezaDentalController;
+use App\Http\Controllers\PlanTratamientoController;
 use App\Http\Controllers\TarifaController;
 use App\Http\Controllers\TipoEstudioController;
+use App\Http\Controllers\TratamientoAplicadoController;
 use App\Http\Controllers\TratamientoController;
 use App\Http\Controllers\TratamientoTipoEstudioController;
 use App\Http\Controllers\UsuarioController;
@@ -22,7 +26,7 @@ use Illuminate\Support\Facades\Route;
 /*
  * Rutas de DentalRox - Ciclo 1: Administración de Usuarios y Seguridad, catálogo de
  * especialidades y Gestión de Pacientes. Ciclo 2: catálogo de tratamientos, citas y agenda.
- * Ciclo 3: catálogos clínicos y de servicios.
+ * Ciclo 3: catálogos clínicos y de servicios, y atención clínica.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -195,6 +199,39 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::post('/cancelar', 'cancelar')->name('citas.cancelar');
         Route::post('/estado', 'cambiarEstado')->name('citas.estado');
         Route::get('/{id}', 'show')->whereNumber('id')->name('citas.mostrar');
+    });
+
+    // CU23 Gestionar historia clínica. Los dos roles atienden: sin middleware rol.
+    // No existe eliminar historia clínica (RF-10).
+    Route::prefix('historias')->group(function () {
+        Route::controller(HistoriaClinicaController::class)->group(function () {
+            Route::post('/update', 'update')->name('historias.modificar');
+            Route::get('/{paciente}', 'show')->whereNumber('paciente')->name('historias.mostrar');
+        });
+
+        Route::prefix('antecedentes')->controller(HistoriaAntecedenteController::class)->group(function () {
+            Route::post('/', 'store')->name('historias.antecedentes.asignar');
+            Route::post('/update', 'update')->name('historias.antecedentes.modificar');
+            Route::post('/delete', 'delete')->name('historias.antecedentes.quitar');
+        });
+    });
+
+    // CU27 Gestionar plan de tratamiento. Los dos roles atienden: sin middleware rol.
+    Route::prefix('planes')->controller(PlanTratamientoController::class)->group(function () {
+        Route::get('/', 'index')->name('planes.listar');
+        Route::post('/', 'store')->name('planes.guardar');
+        Route::post('/update', 'update')->name('planes.modificar');
+        Route::post('/cancelar', 'cancelar')->name('planes.cancelar');
+        Route::get('/{id}', 'show')->whereNumber('id')->name('planes.mostrar');
+    });
+
+    // CU28 Registrar tratamiento aplicado y CU29 Actualizar estado del tratamiento aplicado.
+    // Los dos roles atienden: sin middleware rol.
+    Route::controller(TratamientoAplicadoController::class)->group(function () {
+        Route::get('/planes/{plan}/tratamientos/crear', 'create')->whereNumber('plan')->name('tratamientos-aplicados.crear');
+        Route::post('/tratamientos-aplicados', 'store')->name('tratamientos-aplicados.guardar');
+        Route::post('/tratamientos-aplicados/estado', 'cambiarEstado')->name('tratamientos-aplicados.estado');
+        Route::get('/tratamientos-aplicados/{id}', 'show')->whereNumber('id')->name('tratamientos-aplicados.mostrar');
     });
 });
 
