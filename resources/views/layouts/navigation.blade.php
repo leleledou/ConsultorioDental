@@ -48,7 +48,7 @@
                                 <x-icon :name="$paquete['codigo']" class="h-[18px] w-[18px]" />
                             </span>
                             <span class="min-w-0">
-                                <span class="block text-[11px] font-bold uppercase tracking-wider text-brand-700">{{ $paquete['codigo'] }}</span>
+                                <span class="block text-xs font-bold uppercase tracking-wider text-brand-700">{{ $paquete['codigo'] }}</span>
                                 <span class="block truncate text-sm font-semibold">{{ $paquete['corto'] }}</span>
                             </span>
                         </span>
@@ -71,7 +71,7 @@
                                     {{-- Opción inhabilitada: en gris y sin enlace --}}
                                     <div class="flex cursor-not-allowed items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-ink-soft" aria-disabled="true">
                                         <span>{{ $opcion['nombre'] }}</span>
-                                        <span class="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-soft">Próximo ciclo</span>
+                                        <span class="shrink-0 rounded-full bg-surface px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-ink-soft">Próximo ciclo</span>
                                     </div>
                                 @endif
                             </li>

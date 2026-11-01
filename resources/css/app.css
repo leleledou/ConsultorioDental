@@ -46,6 +46,7 @@
 
 @layer components {
     /* Título de página que muestran las vistas en el slot "header". */
+    .page-header h1,
     .page-header h2 {
         @apply font-display text-2xl font-bold leading-tight text-ink;
     }
@@ -57,7 +58,7 @@
 
     /* Enlace de la barra lateral. */
     .nav-item {
-        @apply relative flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-soft transition-colors duration-150 hover:bg-brand-50 hover:text-brand-800;
+        @apply relative flex items-center justify-between gap-2 rounded-lg px-3 py-2 max-lg:min-h-11 text-sm font-medium text-ink-soft transition-colors duration-150 hover:bg-brand-50 hover:text-brand-800;
     }
 
     .nav-item-active {
@@ -77,7 +78,7 @@
     }
 
     .btn-sm {
-        @apply gap-1.5 px-3 py-1.5 text-[13px];
+        @apply gap-1.5 px-3 py-1.5 text-[13px] max-sm:min-h-11;
     }
 
     .btn-primary {
@@ -146,5 +147,18 @@
     /* Elemento de la lista de tarjetas que sustituye a la tabla en pantallas angostas. */
     .dr-item {
         @apply space-y-3 rounded-xl border border-line bg-white p-4;
+    }
+
+    /* Táctil: los enlaces de texto de una tarjeta (títulos, nombres) amplían su zona pulsable a 44 px sin cambiar el diseño. */
+    @media (max-width: 639px) {
+        .dr-item a:not(.btn) {
+            position: relative;
+        }
+
+        .dr-item a:not(.btn)::after {
+            content: '';
+            position: absolute;
+            inset: -0.625rem 0;
+        }
     }
 }

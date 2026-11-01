@@ -64,7 +64,7 @@
                             <h3 id="tratamiento-{{ $t->id }}" class="font-display text-lg font-bold text-ink">{{ $t->tratamiento->nombre }}</h3>
                             <x-estado-clinico :estado="$t->estado" />
                         </div>
-                        <a href="{{ route('planes.mostrar', $t->plan_tratamiento_id) }}" class="mt-1 inline-block break-words text-sm font-medium text-brand-700 hover:text-brand-900 hover:underline">
+                        <a href="{{ route('planes.mostrar', $t->plan_tratamiento_id) }}" class="mt-1 inline-block break-words max-sm:py-2.5 text-sm font-medium text-brand-700 hover:text-brand-900 hover:underline">
                             Plan del {{ $t->plan->fecha_creacion->format('d/m/Y') }}{{ $t->plan->descripcion ? ': '.$t->plan->descripcion : '' }}
                         </a>
                     </div>
@@ -103,8 +103,8 @@
                     @if ($t->pagos->isEmpty())
                         <p class="px-5 pb-5 pt-2 text-sm text-ink-soft sm:px-6">Este tratamiento todavía no tiene abonos registrados.</p>
                     @else
-                        {{-- Tabla (desde 1024 px) --}}
-                        <div class="mt-2 hidden lg:block">
+                        {{-- Tabla (desde 1280 px) --}}
+                        <div class="mt-2 hidden xl:block">
                             <table class="dr-table">
                                 <caption class="sr-only">Abonos de {{ $t->tratamiento->nombre }}</caption>
                                 <thead>
@@ -142,7 +142,7 @@
                         </div>
 
                         {{-- Tarjetas (móvil y tablet) --}}
-                        <ul class="grid grid-cols-1 gap-3 p-3 sm:p-4 md:grid-cols-2 lg:hidden">
+                        <ul class="grid grid-cols-1 gap-3 p-3 sm:p-4 md:grid-cols-2 xl:hidden">
                             @foreach ($t->pagos as $pago)
                                 <li @class(['dr-item', 'bg-surface/70' => $pago->estado === 'anulado'])>
                                     <div class="flex items-start justify-between gap-3">

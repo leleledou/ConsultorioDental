@@ -11,10 +11,10 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <a href="{{ route('agenda', ['fecha' => $cita->fecha->toDateString()]) }}" class="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-900 hover:underline">
+        <a href="{{ route('agenda', ['fecha' => $cita->fecha->toDateString()]) }}" class="mb-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-brand-700 sm:mb-2 sm:min-h-0 hover:text-brand-900 hover:underline">
             <x-icon name="arrow-left" class="h-4 w-4" /> Agenda
         </a>
-        <h2>Cita N.º {{ $cita->id }}</h2>
+        <h1>Cita N.º {{ $cita->id }}</h1>
     </x-slot>
 
     <div class="py-8">

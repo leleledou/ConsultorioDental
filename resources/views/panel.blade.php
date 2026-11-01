@@ -73,7 +73,7 @@
                                             {{-- Opción inhabilitada: en gris y sin enlace --}}
                                             <div class="flex cursor-not-allowed items-center justify-between rounded-lg px-4 py-2.5 text-sm text-ink-soft" aria-disabled="true">
                                                 <span>{{ $opcion['nombre'] }}</span>
-                                                <span class="rounded-full bg-surface px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">Próximo ciclo</span>
+                                                <span class="rounded-full bg-surface px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">Próximo ciclo</span>
                                             </div>
                                         @endif
                                     </li>

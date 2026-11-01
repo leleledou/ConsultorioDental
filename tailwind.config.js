@@ -49,7 +49,7 @@ export default {
                     800: brand[900],
                     900: '#092F32',
                 },
-                ink: { DEFAULT: '#1F2933', soft: '#52606D', mute: '#7B8794' },
+                ink: { DEFAULT: '#1F2933', soft: '#52606D', mute: '#64707D' },
                 surface: '#F6F9FA',
                 line: '#E1E8EB',
                 marca: '#909191', // gris del logo: decorativo, no para texto

@@ -29,7 +29,7 @@
             <div class="flex min-w-0 items-center gap-4">
                 <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-700 font-display text-lg font-bold text-white" aria-hidden="true">{{ $iniciales }}</span>
                 <div class="min-w-0">
-                    <p class="truncate font-display text-xl font-bold text-ink">{{ $paciente->nombreCompleto() }}</p>
+                    <p class="break-words font-display text-xl font-bold text-ink">{{ $paciente->nombreCompleto() }}</p>
                     <p class="mt-0.5 text-sm text-ink-soft">CI {{ $paciente->ci }} · {{ $paciente->edad() }} años</p>
                 </div>
             </div>

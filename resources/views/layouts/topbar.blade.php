@@ -8,14 +8,14 @@
 
 <div class="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-white/90 px-4 backdrop-blur sm:px-6 lg:px-8">
     <!-- Botón del menú móvil -->
-    <button type="button" class="-ms-2 rounded-lg p-2 text-ink-soft hover:bg-brand-50 hover:text-brand-800 lg:hidden"
+    <button type="button" class="-ms-2.5 rounded-lg p-2.5 text-ink-soft hover:bg-brand-50 hover:text-brand-800 lg:hidden"
             @click="menu = true" aria-controls="menu-lateral" :aria-expanded="menu" aria-label="Abrir menú">
         <x-icon name="menu" class="h-6 w-6" />
     </button>
 
     <!-- Contexto -->
     <div class="min-w-0 flex-1">
-        <p class="truncate text-sm font-semibold text-ink">
+        <p class="text-sm font-semibold leading-tight text-ink">
             @if ($paqueteActual)
                 <span class="me-1 text-brand-700">{{ $paqueteActual['codigo'] }}</span> {{ $paqueteActual['nombre'] }}
             @else
@@ -41,7 +41,7 @@
         <x-slot name="content">
             <!-- Usuario y rol -->
             <div class="border-b border-line bg-surface px-4 py-3">
-                <div class="truncate text-sm font-semibold text-ink">{{ Auth::user()->nombres }} {{ Auth::user()->apellidos }}</div>
+                <div class="break-words text-sm font-semibold text-ink">{{ Auth::user()->nombres }} {{ Auth::user()->apellidos }}</div>
                 <div class="text-xs text-ink-soft">{{ Auth::user()->usuario }} · {{ $rolVisible }}</div>
             </div>
 

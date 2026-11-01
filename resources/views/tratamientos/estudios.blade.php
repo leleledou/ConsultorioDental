@@ -12,18 +12,20 @@
         'observacion' => $volvioFormulario ? old('observacion', '') : '',
     ];
 
-    $claseCampo = 'mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm';
+    // Errores de un campo del formulario (solo si lo que volvió es ese formulario).
+    $erroresDe = fn (string $campo) => $volvioFormulario ? $errors->get($campo) : [];
+    $claseCampo = fn (string $campo) => 'dr-input'.($volvioFormulario && $errors->has($campo) ? ' dr-input-error' : '');
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Estudios requeridos: {{ $tratamiento->nombre }}
-        </h2>
+        <x-cabecera-pagina :titulo="'Estudios requeridos: '.$tratamiento->nombre"
+                           subtitulo="Estudios que se piden antes, durante o después de este tratamiento."
+                           :volver="route('tratamientos.mostrar', $tratamiento->id)" volver-texto="Tratamiento" />
     </x-slot>
 
     {{-- nuevo(): formulario vacío para agregar. editar(): formulario con los datos del requerido. --}}
-    <div class="py-12"
+    <x-pagina
          x-data="{
             abierto: {{ Js::from($volvioFormulario) }},
             form: {{ Js::from($formularioInicial) }},
@@ -40,153 +42,164 @@
                 this.$nextTick(() => this.$refs.formulario.scrollIntoView({ behavior: 'smooth' }));
             },
          }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            @if (session('exito'))
-                <div class="rounded-md bg-green-50 dark:bg-green-900/30 p-4 text-sm font-medium text-green-800 dark:text-green-200">
-                    {{ session('exito') }}
-                </div>
-            @endif
+        @if (session('exito'))
+            <x-alerta tipo="exito">{{ session('exito') }}</x-alerta>
+        @endif
 
-            {{-- Errores de las acciones por fila --}}
-            @if ($errors->any() && ! $volvioFormulario)
-                <div class="rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm font-medium text-red-800 dark:text-red-200">
-                    <ul class="space-y-1">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+        {{-- Errores de las acciones por fila --}}
+        @if ($errors->any() && ! $volvioFormulario)
+            <x-alerta tipo="error">
+                <ul class="space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-alerta>
+        @endif
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100 space-y-4">
-                    <div class="flex justify-end">
-                        <x-primary-button type="button" @click="nuevo()">Agregar estudio</x-primary-button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                            <thead>
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                    <th class="px-3 py-2">Tipo de estudio</th>
-                                    <th class="px-3 py-2">Obligatorio/Recomendado</th>
-                                    <th class="px-3 py-2">Momento clínico</th>
-                                    <th class="px-3 py-2">Observación</th>
-                                    <th class="px-3 py-2">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                                @forelse ($requeridos as $r)
-                                    <tr class="align-top">
-                                        <td class="px-3 py-3 font-medium">{{ $r->tipoEstudio->nombre }}</td>
-                                        <td class="px-3 py-3">{{ $r->obligatorio ? 'Obligatorio' : 'Recomendado' }}</td>
-                                        <td class="px-3 py-3">{{ ucfirst($r->momento_clinico) }}</td>
-                                        <td class="px-3 py-3">{{ $r->observacion ?? '—' }}</td>
-                                        <td class="px-3 py-3">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <x-secondary-button
-                                                    @click="editar({{ Js::from($r->only(['id', 'tipo_estudio_id', 'obligatorio', 'momento_clinico', 'observacion'])) }})">
-                                                    Modificar
-                                                </x-secondary-button>
-
-                                                {{-- Quitar (el id viaja oculto) --}}
-                                                <form method="POST" action="{{ route('tratamientos.estudios.quitar') }}"
-                                                      onsubmit="return confirm({{ Js::from('¿Quitar el estudio requerido '.$r->tipoEstudio->nombre.'?') }});">
-                                                    @csrf
-                                                    <input type="hidden" name="id" value="{{ $r->id }}">
-                                                    <x-danger-button>Quitar</x-danger-button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
-                                            Este tratamiento no tiene estudios requeridos.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        {{-- Tratamiento --}}
+        <section class="dr-card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6" aria-label="Tratamiento">
+            <div class="min-w-0">
+                <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Tratamiento</p>
+                <p class="mt-0.5 break-words font-display text-xl font-bold text-ink">{{ $tratamiento->nombre }}</p>
+                <p class="mt-0.5 text-sm text-ink-soft"><span class="font-semibold tabular-nums text-ink">{{ $requeridos->count() }}</span> estudio(s) requerido(s)</p>
             </div>
+            <x-primary-button type="button" @click="nuevo()" class="w-full sm:w-auto">
+                <x-icon name="plus" class="h-5 w-5" /> Agregar estudio
+            </x-primary-button>
+        </section>
 
-            {{-- Formulario de registro / modificación --}}
-            <div x-ref="formulario" x-show="abierto" x-cloak class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <section>
-                    <header>
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100"
-                            x-text="form.id ? 'Modificar estudio requerido' : 'Agregar estudio requerido'"></h2>
-                    </header>
+        <section class="dr-card overflow-hidden" aria-label="Estudios requeridos">
+            @if ($requeridos->isEmpty())
+                <div class="px-6 py-14 text-center">
+                    <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+                        <x-icon name="P4" class="h-7 w-7" />
+                    </span>
+                    <p class="mt-4 text-base font-semibold text-ink">Este tratamiento no tiene estudios requeridos.</p>
+                    <p class="mt-1 text-sm text-ink-soft">Agregue el primero con el botón «Agregar estudio».</p>
+                </div>
+            @else
+                {{-- Tabla (desde 1280 px) --}}
+                <div class="hidden xl:block">
+                    <table class="dr-table">
+                        <caption class="sr-only">Estudios requeridos de {{ $tratamiento->nombre }}</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Tipo de estudio</th>
+                                <th scope="col">Obligatorio/Recomendado</th>
+                                <th scope="col">Momento clínico</th>
+                                <th scope="col">Observación</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($requeridos as $r)
+                                <tr class="align-top">
+                                    <td class="font-semibold text-ink">{{ $r->tipoEstudio->nombre }}</td>
+                                    <td><x-insignia :tono="$r->obligatorio ? 'marca' : 'neutro'">{{ $r->obligatorio ? 'Obligatorio' : 'Recomendado' }}</x-insignia></td>
+                                    <td class="text-ink-soft">{{ ucfirst($r->momento_clinico) }}</td>
+                                    <td class="whitespace-pre-line text-ink-soft">{{ $r->observacion ?? '—' }}</td>
+                                    <td><x-tratamientos.requerido-acciones :r="$r" /></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
+                {{-- Tarjetas (móvil y tablet) --}}
+                <ul class="grid grid-cols-1 gap-3 p-3 sm:p-4 md:grid-cols-2 xl:hidden">
+                    @foreach ($requeridos as $r)
+                        <li class="dr-item">
+                            <div class="flex items-start justify-between gap-3">
+                                <p class="min-w-0 break-words font-display text-base font-bold text-ink">{{ $r->tipoEstudio->nombre }}</p>
+                                <x-insignia :tono="$r->obligatorio ? 'marca' : 'neutro'">{{ $r->obligatorio ? 'Obligatorio' : 'Recomendado' }}</x-insignia>
+                            </div>
+                            <dl class="grid grid-cols-1 gap-2 text-sm">
+                                <div class="min-w-0"><dt class="text-xs text-ink-soft">Momento clínico</dt><dd class="font-medium text-ink">{{ ucfirst($r->momento_clinico) }}</dd></div>
+                                <div class="min-w-0"><dt class="text-xs text-ink-soft">Observación</dt><dd class="whitespace-pre-line break-words font-medium text-ink">{{ $r->observacion ?? '—' }}</dd></div>
+                            </dl>
+                            <x-tratamientos.requerido-acciones :r="$r" />
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
+        {{-- Formulario de registro / modificación --}}
+        <section x-ref="formulario" x-show="abierto" x-cloak
+                 x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+                 class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="titulo-formulario">
+            <header class="flex items-start justify-between gap-4 border-b border-line bg-surface/60 px-5 py-4 sm:px-6">
+                <h3 id="titulo-formulario" class="text-lg font-bold text-ink" x-text="form.id ? 'Modificar estudio requerido' : 'Agregar estudio requerido'">Agregar estudio requerido</h3>
+                <button type="button" @click="abierto = false" class="-me-2 rounded-lg p-2 text-ink-soft hover:bg-brand-50 hover:text-brand-800" aria-label="Cerrar formulario">
+                    <x-icon name="close" />
+                </button>
+            </header>
+
+            <form method="POST" :action="form.id ? {{ Js::from(route('tratamientos.estudios.modificar')) }} : {{ Js::from(route('tratamientos.estudios.guardar')) }}" class="p-5 sm:p-6">
+                @csrf
+                <input type="hidden" name="formulario" value="datos">
+                <input type="hidden" name="tratamiento_id" value="{{ $tratamiento->id }}">
+                {{-- El id viaja oculto solo al modificar --}}
+                <input type="hidden" name="id" :value="form.id" :disabled="! form.id">
+
+                <div class="max-w-3xl space-y-5">
                     @if ($volvioFormulario && $errors->any())
-                        <div class="mt-4 rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm font-medium text-red-800 dark:text-red-200">
-                            Revise los datos marcados en el formulario.
-                        </div>
+                        <x-alerta tipo="error">Revise los datos marcados en el formulario.</x-alerta>
                     @endif
 
-                    <form method="POST" :action="form.id ? {{ Js::from(route('tratamientos.estudios.modificar')) }} : {{ Js::from(route('tratamientos.estudios.guardar')) }}" class="mt-6 space-y-6">
-                        @csrf
-                        <input type="hidden" name="formulario" value="datos">
-                        <input type="hidden" name="tratamiento_id" value="{{ $tratamiento->id }}">
-                        {{-- El id viaja oculto solo al modificar --}}
-                        <input type="hidden" name="id" :value="form.id" :disabled="! form.id">
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <x-campo name="tipo_estudio_id" label="Tipo de estudio" :requerido="true" :errores="$erroresDe('tipo_estudio_id')">
+                            <select id="tipo_estudio_id" name="tipo_estudio_id" class="{{ $claseCampo('tipo_estudio_id') }}" x-model="form.tipo_estudio_id" required>
+                                <option value="">Seleccione…</option>
+                                @foreach ($tipos as $tipo)
+                                    <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </x-campo>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <x-input-label for="tipo_estudio_id" value="Tipo de estudio" />
-                                <select id="tipo_estudio_id" name="tipo_estudio_id" class="{{ $claseCampo }}" x-model="form.tipo_estudio_id" required>
-                                    <option value="">Seleccione…</option>
-                                    @foreach ($tipos as $tipo)
-                                        <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
-                                    @endforeach
-                                </select>
-                                @if ($volvioFormulario) <x-input-error :messages="$errors->get('tipo_estudio_id')" class="mt-2" /> @endif
-                            </div>
+                        <x-campo name="momento_clinico" label="Momento clínico" :requerido="true" :errores="$erroresDe('momento_clinico')">
+                            <select id="momento_clinico" name="momento_clinico" class="{{ $claseCampo('momento_clinico') }}" x-model="form.momento_clinico" required>
+                                <option value="">Seleccione…</option>
+                                @foreach (\App\Models\TratamientoTipoEstudio::MOMENTOS_CLINICOS as $momento)
+                                    <option value="{{ $momento }}">{{ ucfirst($momento) }}</option>
+                                @endforeach
+                            </select>
+                        </x-campo>
 
-                            <div>
-                                <x-input-label for="momento_clinico" value="Momento clínico" />
-                                <select id="momento_clinico" name="momento_clinico" class="{{ $claseCampo }}" x-model="form.momento_clinico" required>
-                                    <option value="">Seleccione…</option>
-                                    @foreach (\App\Models\TratamientoTipoEstudio::MOMENTOS_CLINICOS as $momento)
-                                        <option value="{{ $momento }}">{{ ucfirst($momento) }}</option>
-                                    @endforeach
-                                </select>
-                                @if ($volvioFormulario) <x-input-error :messages="$errors->get('momento_clinico')" class="mt-2" /> @endif
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                {{-- El oculto envía 0 cuando la casilla no está marcada --}}
-                                <input type="hidden" name="obligatorio" value="0">
-                                <label for="obligatorio" class="inline-flex items-center gap-2">
-                                    <input id="obligatorio" name="obligatorio" type="checkbox" value="1" x-model="form.obligatorio"
-                                           class="rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600">
-                                    <span class="text-sm text-gray-700 dark:text-gray-300">Obligatorio</span>
-                                </label>
-                                @if ($volvioFormulario) <x-input-error :messages="$errors->get('obligatorio')" class="mt-2" /> @endif
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                <x-input-label for="observacion" value="Observación (opcional)" />
-                                <textarea id="observacion" name="observacion" rows="3" class="{{ $claseCampo }}" x-model="form.observacion"></textarea>
-                                @if ($volvioFormulario) <x-input-error :messages="$errors->get('observacion')" class="mt-2" /> @endif
-                            </div>
+                        <div class="sm:col-span-2">
+                            {{-- El oculto envía 0 cuando la casilla no está marcada --}}
+                            <input type="hidden" name="obligatorio" value="0">
+                            <label for="obligatorio" class="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition-colors hover:border-brand-300 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50">
+                                <input id="obligatorio" name="obligatorio" type="checkbox" value="1" x-model="form.obligatorio"
+                                       class="h-4 w-4 shrink-0 rounded border-gray-300 text-brand-700 shadow-sm focus:ring-brand-600">
+                                <span>Obligatorio <span class="text-ink-soft">(si no se marca, es recomendado)</span></span>
+                            </label>
+                            @if ($volvioFormulario && $errors->has('obligatorio'))
+                                <x-input-error :messages="$errors->get('obligatorio')" class="mt-1.5" />
+                            @endif
                         </div>
 
-                        <div class="flex items-center gap-4">
-                            <x-primary-button x-text="form.id ? 'Guardar cambios' : 'Agregar'">Guardar</x-primary-button>
-                            <x-secondary-button @click="abierto = false">Cancelar</x-secondary-button>
-                        </div>
-                    </form>
-                </section>
-            </div>
+                        <x-campo name="observacion" label="Observación (opcional)" class="sm:col-span-2" :errores="$erroresDe('observacion')">
+                            <textarea id="observacion" name="observacion" rows="3" class="{{ $claseCampo('observacion') }}" x-model="form.observacion"></textarea>
+                        </x-campo>
+                    </div>
+                </div>
 
-            <div class="flex flex-wrap items-center gap-4">
-                <a href="{{ route('tratamientos.mostrar', $tratamiento->id) }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
-                    Volver al tratamiento
-                </a>
-            </div>
+                <div class="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-xs text-ink-soft"><span class="text-red-700" aria-hidden="true">*</span> Campo obligatorio</p>
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row">
+                        <x-secondary-button @click="abierto = false">Cancelar</x-secondary-button>
+                        <x-primary-button x-text="form.id ? 'Guardar cambios' : 'Agregar'">Guardar</x-primary-button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('tratamientos.mostrar', $tratamiento->id) }}" class="btn btn-secondary">
+                <x-icon name="arrow-left" class="h-4 w-4" /> Volver al tratamiento
+            </a>
         </div>
-    </div>
+    </x-pagina>
 </x-app-layout>

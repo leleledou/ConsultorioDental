@@ -5,7 +5,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2>Citas del día — {{ ucfirst($fecha->locale('es')->isoFormat('dddd DD/MM/YYYY')) }}</h2>
+        <h1>Citas del día — {{ ucfirst($fecha->locale('es')->isoFormat('dddd DD/MM/YYYY')) }}</h1>
         <p class="mt-1 text-sm text-ink-soft">Revise las citas del día y actualice su estado.</p>
     </x-slot>
 
@@ -71,7 +71,7 @@
                             <li class="grid gap-4 p-4 sm:p-5 lg:grid-cols-[10rem_minmax(0,1fr)_minmax(0,24rem)] lg:items-start">
                                 {{-- Hora y estado --}}
                                 <div class="flex items-center justify-between gap-3 lg:block lg:space-y-2">
-                                    <a href="{{ route('citas.mostrar', $c->id) }}" class="inline-flex items-center gap-1.5 font-display text-lg font-bold tabular-nums text-ink hover:text-brand-800 hover:underline">
+                                    <a href="{{ route('citas.mostrar', $c->id) }}" class="inline-flex items-center gap-1.5 max-sm:min-h-11 font-display text-lg font-bold tabular-nums text-ink hover:text-brand-800 hover:underline">
                                         <x-icon name="clock" class="h-4 w-4 text-brand-700" /> {{ $c->horaInicioCorta() }} – {{ $c->horaFinCorta() }}
                                     </a>
                                     <div><x-estado-cita :nombre="$c->estado->nombre" /></div>

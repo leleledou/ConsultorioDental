@@ -12,10 +12,10 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <a href="{{ route('agenda') }}" class="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-900 hover:underline">
+        <a href="{{ route('agenda') }}" class="mb-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-brand-700 sm:mb-2 sm:min-h-0 hover:text-brand-900 hover:underline">
             <x-icon name="arrow-left" class="h-4 w-4" /> Agenda
         </a>
-        <h2>Programar cita</h2>
+        <h1>Programar cita</h1>
         <p class="mt-1 text-sm text-ink-soft">Busque al paciente y complete los datos de la cita.</p>
     </x-slot>
 
@@ -55,7 +55,7 @@
                             <div class="mt-2 flex flex-wrap gap-2">
                                 @foreach ($franjasLibres as $franja)
                                     <button type="button" @click="hora = {{ Js::from($franja['sugerida']) }}"
-                                            class="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-brand-500 hover:bg-brand-50">
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-3 py-1.5 max-sm:min-h-11 text-xs font-semibold text-ink transition hover:border-brand-500 hover:bg-brand-50">
                                         <x-icon name="clock" class="h-3.5 w-3.5 text-brand-700" /> Libre de {{ $franja['inicio'] }} a {{ $franja['fin'] }} · usar {{ $franja['sugerida'] }}
                                     </button>
                                 @endforeach

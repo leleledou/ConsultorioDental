@@ -109,7 +109,49 @@ Pantallas: `reportes/clinicos`, `agenda`, `financieros` y los parciales `pestana
 - **`<x-reportes.valor :resultado :clave :valor>`**: pinta cada celda o total: dinero con `<x-moneda>`, la columna `estado` con la insignia que corresponda (cita, plan/tratamiento o abono vigente/anulado) y el resto con el texto de `ReporteService::formatear`, el mismo de la pantalla y del PDF. Las columnas numéricas se alinean a la derecha con cifras tabulares.
 - **Gráficos**: no se agregan. El backend entrega tablas con columnas elegibles y totales, sin series estables que justifiquen una librería de gráficos.
 
+## Administración: Usuarios, Bitácora y Cambiar contraseña (implementado)
+Pantallas: `usuarios/index`, `usuarios/show`, `bitacora/index`, `bitacora/show` y `contrasena/cambiar` (solo administrador, salvo Cambiar contraseña, que usan los dos roles).
+- **Usuarios**: mismo patrón que Pacientes (buscador + «Nuevo usuario», contador, tabla `dr-table` desde 1280 px y tarjetas `dr-item` por debajo, formulario en panel con `x-data`). El formulario se agrupa en Datos personales, Datos profesionales, Contacto y Acceso al sistema (rol y contraseña inicial solo al registrar, dentro de `<template x-if>`). Rol: `<x-insignia>` turquesa para administrador y azul para odontólogo; estado con `x-insignia-activo`; bloqueo con insignia roja. Las cinco acciones de una fila viven en `<x-usuarios.acciones :u>` (tabla y tarjeta comparten el mismo código); la contraseña temporal se muestra en una `x-alerta tipo="aviso"` con borde ámbar y texto monoespaciado seleccionable.
+- **Bitácora**: filtros en tarjeta (`x-campo`), contador, tabla desde 1280 px y tarjetas por debajo con fecha, hora, usuario, acción, tabla, registro e IP completos. `<x-bitacora.accion :accion>` muestra el texto exacto de la acción en monoespaciado; el color solo depende del verbo con que empieza (rojo: fallos de acceso, bajas, anulaciones y cancelaciones; verde: altas, registros y habilitaciones; turquesa: modificaciones, cambios y restablecimientos; gris: el resto, p. ej. cierres de sesión). No se agregan categorías ni textos que no existan en el backend.
+- **Cambiar contraseña**: tarjeta con cabecera e icono de llave, tres campos con `x-campo` (contraseña actual, nueva con la política como ayuda y confirmación), errores junto a cada campo y el aviso de contraseña temporal como `x-alerta tipo="aviso"`.
+- **Fichas** (`usuarios/show`, `bitacora/show`): resumen con avatar o acción y datos con `x-dato`; el acceso del usuario (estado, intentos, bloqueo, cambio obligatorio) en una tarjeta lateral.
+
+## Catálogos, etapa A: Especialidades, Tratamientos, Estudios requeridos y Tarifas (implementado)
+Pantallas: `especialidades/index` y `show`, `tratamientos/index`, `show` y `estudios`, `tarifas/index` y `show` (solo administrador). Es el patrón que seguirán el resto de los catálogos.
+- **Listado de catálogo**: tarjeta con buscador y «Nuevo …» (o solo contador si no hay buscador), tabla `dr-table` y tarjetas `dr-item`, panel de formulario con `x-data` (`nuevo()` / `editar()`), y las acciones de fila en un componente `x-<módulo>.acciones` compartido por la tabla y la tarjeta (`x-especialidades.acciones`, `x-tratamientos.acciones`, `x-tratamientos.requerido-acciones`). Punto de corte de la tabla: `md` si tiene 4 columnas o menos, `lg` o `xl` si las acciones son muchas.
+- **Estados de catálogo**: «Disponible»/«No disponible» (tratamientos) y «Vigente»/«Cerrada» (tarifas) con `x-insignia` verde/gris; «Obligatorio» turquesa y «Recomendado» gris; «Sin tarifa» ámbar. Para activo/inactivo se usa `x-insignia-activo`.
+- **Casillas de formulario**: una sola fila táctil (`min-h-11`, borde que pasa a turquesa al marcarla con `has-[:checked]`) en lugar de la casilla suelta; el campo oculto con 0 se conserva.
+- **Importes de tarifas**: siempre con `x-moneda`; el campo de precio lleva prefijo «Bs» y `inputmode="decimal"`. En la ficha del tratamiento, un resumen con el precio vigente (la tarifa con estado vigente que ya entrega el backend) y el historial debajo.
+- **Fichas con relaciones**: la especialidad lista sus usuarios con enlace y estado; el tratamiento muestra sus datos con `x-dato` y conserva «Dar de baja»/«Habilitar» al pie.
+
+## Catálogos, etapa B: Diagnósticos, Tipos de estudio, Materiales y Antecedentes médicos (implementado)
+Pantallas: `diagnosticos`, `tipos-estudio`, `materiales` y `antecedentes` (`index` y `show` de cada uno, solo administrador). Siguen el patrón de la etapa A.
+- **Catálogos con estado activo/inactivo** (diagnósticos, tipos de estudio, materiales): `x-insignia-activo` en tabla, tarjeta y ficha; acciones de fila en `x-catalogos.acciones` (Modificar + Dar de baja/Habilitar) y, en la ficha, `x-catalogos.baja-habilitar` a ancho completo en móvil. Ambos reciben el prefijo de rutas (`ruta="materiales"`), la etiqueta del confirm y, el primero, los campos que carga `editar()`.
+- **Antecedentes** no tienen estado (el backend borra de verdad): sin insignia, columna «N.º de historias» y `x-antecedentes.acciones` (Modificar + Eliminar). La ficha solo muestra nombre y descripción.
+- **Puntos de corte**: tabla desde `lg` (diagnósticos, tipos, materiales) o `md` (antecedentes); por debajo, tarjetas en 1 columna (2 desde `md` cuando hay tabla desde `lg`).
+- **Textos largos**: las descripciones no se recortan (`whitespace-pre-line break-words`, `max-w-md` en la tabla). El código del diagnóstico va en turquesa como enlace a la ficha; la tabla de materiales muestra categoría y unidad de medida, sin campos de inventario.
+- **Formularios**: sin selectores nuevos; código (10) + nombre (60) en una fila para diagnósticos y categoría (20) + unidad (15) para materiales; errores por campo con `x-campo`.
+
+## Catálogos, etapa C: Piezas dentales, Estados de pieza y Métodos de pago (implementado)
+Pantallas: `piezas-dentales`, `estados-pieza` y `metodos-pago` (`index` y `show`, solo administrador). Con esta etapa todos los catálogos usan el patrón de la etapa A.
+- **Piezas dentales** es un catálogo fijo de solo lectura (sin buscador, paginación ni acciones): contador, tabla desde `md` y tarjetas compactas (código FDI grande en turquesa, cuadrante, nombre, tipo · dentición). Sin insignias: no tienen estado.
+- **Pestañas «Piezas y estados»**: `x-catalogos.pestanas` (`activa="estados"|"piezas"`), subrayado turquesa y objetivo táctil de 44 px; sustituye al `x-nav-link` de Breeze, que ya no se usa en ninguna vista.
+- **Estados de pieza**: tabla desde `xl` (6 columnas), tarjetas por debajo. El color de referencia (#RRGGBB) se muestra con `x-estados-pieza.color` (muestra circular + código; solo pinta si cumple el formato) y el formulario previsualiza el color con Alpine sin añadir campos.
+- **Métodos de pago**: nombre y descripción, mismo patrón que tipos de estudio (tabla desde `lg`). Sin comisiones ni datos de pasarela: el backend solo guarda nombre y descripción.
+- Las acciones de baja/habilitar reutilizan `x-catalogos.acciones` y `x-catalogos.baja-habilitar` (`ruta="estados-pieza"`, `ruta="metodos-pago"`).
+
+## Correcciones finales de la auditoría (responsive, accesibilidad y errores) (implementado)
+- **Puntos de corte de tablas**: las tablas con acciones en su última columna (`Estado de cuenta → Abonos` y `Estudios requeridos`) pasan de `lg` a `xl` (1280 px). A 1024 px el menú lateral fijo deja unos 650 px útiles y la tarjeta (`overflow-hidden`) recortaba la columna; por debajo de 1280 px se usan tarjetas con todas las acciones. Regla general: una tabla con acciones solo empieza en `lg` si cabe en ~650 px; si no, en `xl`. Comprobar siempre los recortes por `overflow-hidden`, no solo `scrollWidth`.
+- **Título de página**: `x-cabecera-pagina` (y las cabeceras de citas y pacientes escritas a mano) usa `<h1>`; `.page-header h1` conserva el aspecto anterior. Los demás títulos siguen siendo `h2`/`h3`.
+- **Idioma**: los layouts `app` y `guest` fijan `lang="es"`. El locale de Laravel (`APP_LOCALE=en` en `.env`) no se modificó: pendiente de decisión si se quieren mensajes de validación, fechas y paginación por defecto en español.
+- **Táctil**: `.btn-sm` mide 44 px de alto por debajo de 640 px (`max-sm:min-h-11`); lo mismo los enlaces del menú en móvil, los selectores Día/Semana, las franjas sugeridas, el enlace «volver» de la cabecera y el botón de la hamburguesa (44 × 44 px). En escritorio no cambian.
+- **Contraste**: `ink-mute` pasa de `#7B8794` a `#64707D` (≥ 4,5 : 1 sobre blanco, `surface` y `brand-50`) y se usa en guiones de valores vacíos y marcadores.
+- **Texto pequeño**: el código de paquete (P1…P5) y la etiqueta «Próximo ciclo» del menú pasan de 11/10 px a 12 px (`text-xs`).
+- **Sin recortes de datos**: CI/teléfono y nombre del paciente (listado y ficha), citas de la agenda (día y semana) y el contexto de la cabecera superior se ajustan con `break-words`/varias líneas en lugar de `truncate`. Se conserva `truncate` solo en el menú de usuario (nombre completo en el desplegable) y en etiquetas fijas.
+- **ids únicos**: `x-usuarios.acciones` recibe `sufijo` (`-tabla`/`-tarjeta`) porque se dibuja en la tabla y en la tarjeta.
+- **Páginas de error**: `resources/views/errors/{403,404,419,500,minimal}.blade.php` usan `x-error-pagina` (documento propio: logo, código, título `h1`, mensaje fijo y «Ir al panel»/«Ir al inicio de sesión» + «Volver»). No muestran el mensaje de la excepción ni datos internos y conservan el código HTTP; `minimal` cubre 401, 429, 503, etc. Con `APP_DEBUG=true` Laravel sigue mostrando su página de depuración.
+
 ## Pendiente
-- Rediseñar con estos componentes el resto del ciclo 3, en este orden: Usuarios, Bitácora y Cambiar contraseña; Especialidades, Tratamientos y demás catálogos.
-- Sustituir las clases `gray-*`/`indigo-*` sueltas de esos módulos por los tokens.
+- Pruebas funcionales finales con datos ficticios (solo en la base auxiliar), decisión sobre `APP_LOCALE` y limpieza de los componentes Breeze sobrantes.
+- Componentes sobrantes (sin eliminar): `components/nav-link`, `components/responsive-nav-link` y `welcome.blade.php` (Breeze) ya no se usan.
 - Favicon derivado del isotipo; versión transparente del logo (opcional).

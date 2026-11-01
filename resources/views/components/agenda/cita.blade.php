@@ -18,6 +18,6 @@
         <span class="font-bold tabular-nums text-ink">{{ $cita->horaInicioCorta() }}–{{ $cita->horaFinCorta() }}</span>
         <x-estado-cita :nombre="$cita->estado->nombre" />
     </div>
-    <div @class(['mt-0.5 truncate font-semibold text-ink', 'line-through' => $cancelada])>{{ $cita->paciente->nombreCompleto() }}</div>
-    <div class="truncate text-ink-soft">{{ $cita->motivo ?? '—' }} · {{ $cita->odontologo->nombres }}</div>
+    <div @class(['mt-0.5 break-words font-semibold text-ink', 'line-through' => $cancelada])>{{ $cita->paciente->nombreCompleto() }}</div>
+    <div class="break-words text-ink-soft">{{ $cita->motivo ?? '—' }} · {{ $cita->odontologo->nombres }}</div>
 </a>

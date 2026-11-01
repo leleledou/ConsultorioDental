@@ -26,7 +26,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2>Gestionar pacientes</h2>
+        <h1>Gestionar pacientes</h1>
         <p class="mt-1 text-sm text-ink-soft">Registre, busque y actualice los pacientes del consultorio.</p>
     </x-slot>
 
@@ -172,7 +172,7 @@
                                 <dl class="grid grid-cols-3 gap-2 text-sm">
                                     <div><dt class="text-xs text-ink-soft">CI</dt><dd class="font-medium tabular-nums text-ink">{{ $p->ci }}</dd></div>
                                     <div><dt class="text-xs text-ink-soft">Edad</dt><dd class="font-medium text-ink">{{ $p->edad() }} años</dd></div>
-                                    <div><dt class="text-xs text-ink-soft">Teléfono</dt><dd class="truncate font-medium text-ink">{{ $p->telefono ?? '—' }}</dd></div>
+                                    <div><dt class="text-xs text-ink-soft">Teléfono</dt><dd class="break-words font-medium text-ink">{{ $p->telefono ?? '—' }}</dd></div>
                                 </dl>
 
                                 <x-pacientes.acciones :p="$p" />

@@ -54,12 +54,12 @@
                     {{-- Cambio de vista --}}
                     <div class="ms-1 inline-flex overflow-hidden rounded-lg border border-gray-300 shadow-sm" role="group" aria-label="Vista de la agenda">
                         <a href="{{ $enlace(['vista' => 'dia']) }}" @class([
-                            'px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                            'inline-flex items-center px-3.5 py-1.5 max-sm:min-h-11 text-[13px] font-semibold transition-colors',
                             'bg-brand-700 text-white' => $vista === 'dia',
                             'bg-white text-ink hover:bg-brand-50' => $vista !== 'dia',
                         ]) @if ($vista === 'dia') aria-current="page" @endif>Día</a>
                         <a href="{{ $enlace(['vista' => 'semana']) }}" @class([
-                            'border-s border-gray-300 px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                            'inline-flex items-center border-s border-gray-300 px-3.5 py-1.5 max-sm:min-h-11 text-[13px] font-semibold transition-colors',
                             'bg-brand-700 text-white' => $vista === 'semana',
                             'bg-white text-ink hover:bg-brand-50' => $vista !== 'semana',
                         ]) @if ($vista === 'semana') aria-current="page" @endif>Semana</a>
@@ -237,8 +237,8 @@
                             <a href="{{ route('citas.mostrar', $c->id) }}"
                                class="block rounded-lg border-l-4 px-2.5 py-1.5 text-xs shadow-sm transition hover:shadow-card hover:ring-2 hover:ring-brand-300 {{ $colores[$c->estado->nombre] ?? 'border-gray-400 bg-gray-50' }}">
                                 <div class="font-bold tabular-nums text-ink">{{ $c->horaInicioCorta() }}–{{ $c->horaFinCorta() }}</div>
-                                <div @class(['truncate font-semibold text-ink', 'line-through' => $c->estado->nombre === 'cancelada'])>{{ $c->paciente->nombreCompleto() }}</div>
-                                <div class="truncate text-ink-soft">{{ $c->motivo ?? '—' }}</div>
+                                <div @class(['break-words font-semibold text-ink', 'line-through' => $c->estado->nombre === 'cancelada'])>{{ $c->paciente->nombreCompleto() }}</div>
+                                <div class="break-words text-ink-soft">{{ $c->motivo ?? '—' }}</div>
                                 <x-estado-cita :nombre="$c->estado->nombre" class="mt-1.5" />
                             </a>
                         @empty
@@ -246,7 +246,7 @@
                         @endforelse
 
                         @if ($dia['fecha']->gte(today()))
-                            <a href="{{ route('citas.crear', ['fecha' => $dia['fecha']->toDateString()]) }}" class="mt-auto inline-flex items-center gap-1 pt-1 text-xs font-semibold text-brand-700 hover:text-brand-900 hover:underline">
+                            <a href="{{ route('citas.crear', ['fecha' => $dia['fecha']->toDateString()]) }}" class="mt-auto inline-flex items-center gap-1 pt-1 max-sm:min-h-11 text-xs font-semibold text-brand-700 hover:text-brand-900 hover:underline">
                                 <x-icon name="plus" class="h-3.5 w-3.5" /> Programar
                             </a>
                         @endif
