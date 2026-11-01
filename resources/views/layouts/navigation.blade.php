@@ -15,7 +15,7 @@
     <div class="flex items-center justify-between border-b border-line px-5">
         <a href="{{ route('panel') }}" class="block py-1" aria-label="{{ config('app.name', 'DentalRox') }}: ir al panel">
             <img src="{{ asset('images/dentalrox-logo.png') }}" alt="{{ config('app.name', 'DentalRox') }}"
-                 width="1983" height="793" class="h-[84px] w-auto [filter:brightness(1.012)]">
+                 width="800" height="320" class="h-[84px] w-auto [filter:brightness(1.012)]">
         </a>
         <button type="button" class="rounded-lg p-2 text-ink-soft hover:bg-brand-50 hover:text-brand-800 lg:hidden" @click="menu = false" aria-label="Cerrar menú">
             <x-icon name="close" />

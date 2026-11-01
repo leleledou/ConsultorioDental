@@ -1,6 +1,8 @@
 # Documentación de DentalRox
 
-Índice de la documentación de referencia del proyecto. Describe solo los archivos que existen hoy. Los archivos originales no se modifican ni se renombran.
+Índice de la documentación de referencia del proyecto.
+
+> Los archivos pesados (PDF del documento, logo original en alta resolución y `.mdj` del diagrama de clases) **no se suben al repositorio** (ver `.gitignore`): cada integrante los guarda localmente en estas mismas carpetas. El logo optimizado que usa la aplicación está en `public/images/dentalrox-logo.png` (800 × 320 px). Describe solo los archivos que existen hoy. Los archivos originales no se modifican ni se renombran.
 
 ## Estructura
 

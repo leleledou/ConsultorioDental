@@ -23,7 +23,7 @@
     <body class="font-sans antialiased">
         <main class="flex min-h-screen items-center justify-center px-4 py-10">
             <section class="dr-card w-full max-w-md p-8 text-center sm:p-10" aria-labelledby="error-titulo">
-                <img src="{{ asset('images/dentalrox-logo.png') }}" alt="DentalRox" width="1983" height="793" class="mx-auto h-12 w-auto" style="filter: brightness(1.012)">
+                <img src="{{ asset('images/dentalrox-logo.png') }}" alt="DentalRox" width="800" height="320" class="mx-auto h-12 w-auto" style="filter: brightness(1.012)">
 
                 <p class="mt-8 font-display text-6xl font-extrabold leading-none text-brand-700" aria-hidden="true">{{ $codigo }}</p>
                 <h1 id="error-titulo" class="mt-4 font-display text-2xl font-bold text-ink">{{ $titulo }}</h1>

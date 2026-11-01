@@ -46,7 +46,7 @@
                 <div class="w-full max-w-sm">
                     <a href="{{ route('login') }}" class="block" aria-label="{{ config('app.name', 'DentalRox') }}">
                         <img src="{{ asset('images/dentalrox-logo.png') }}" alt="{{ config('app.name', 'DentalRox') }}"
-                             width="1983" height="793" class="mx-auto -my-8 h-auto w-80 max-w-full [filter:brightness(1.012)]">
+                             width="800" height="320" class="mx-auto -my-8 h-auto w-80 max-w-full [filter:brightness(1.012)]">
                     </a>
 
                     <div class="mt-8">
