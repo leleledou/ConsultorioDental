@@ -9,17 +9,19 @@
         'nombre' => $volvioFormulario ? old('nombre', '') : '',
         'descripcion' => $volvioFormulario ? old('descripcion', '') : '',
     ];
+
+    // Errores de un campo del formulario (solo si lo que volvió es ese formulario).
+    $erroresDe = fn (string $campo) => $volvioFormulario ? $errors->get($campo) : [];
+    $claseCampo = fn (string $campo) => 'dr-input'.($volvioFormulario && $errors->has($campo) ? ' dr-input-error' : '');
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Gestionar especialidades
-        </h2>
+        <x-cabecera-pagina titulo="Gestionar especialidades" subtitulo="Catálogo de especialidades odontológicas del consultorio." />
     </x-slot>
 
     {{-- nuevo(): formulario vacío para registrar. editar(): formulario con los datos de la especialidad. --}}
-    <div class="py-12"
+    <x-pagina
          x-data="{
             abierto: {{ Js::from($volvioFormulario) }},
             form: {{ Js::from($formularioInicial) }},
@@ -36,112 +38,116 @@
                 this.$nextTick(() => this.$refs.formulario.scrollIntoView({ behavior: 'smooth' }));
             },
          }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            @if (session('exito'))
-                <div class="rounded-md bg-green-50 dark:bg-green-900/30 p-4 text-sm font-medium text-green-800 dark:text-green-200">
-                    {{ session('exito') }}
+        @if (session('exito'))
+            <x-alerta tipo="exito">{{ session('exito') }}</x-alerta>
+        @endif
+
+        @if ($errors->any() && ! $volvioFormulario)
+            <x-alerta tipo="error">
+                <ul class="space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-alerta>
+        @endif
+
+        <section class="dr-card overflow-hidden" aria-label="Listado de especialidades">
+            <div class="flex flex-col gap-3 border-b border-line p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                <p class="text-sm text-ink-soft"><span class="font-semibold text-ink">{{ $especialidades->count() }}</span> especialidad(es) registrada(s)</p>
+                <x-primary-button type="button" @click="nuevo()" class="w-full sm:w-auto">
+                    <x-icon name="plus" class="h-5 w-5" /> Nueva especialidad
+                </x-primary-button>
+            </div>
+
+            @if ($especialidades->isEmpty())
+                <div class="px-6 py-14 text-center">
+                    <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+                        <x-icon name="P2" class="h-7 w-7" />
+                    </span>
+                    <p class="mt-4 text-base font-semibold text-ink">No hay especialidades registradas.</p>
                 </div>
-            @endif
-
-            @if ($errors->any() && ! $volvioFormulario)
-                <div class="rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm font-medium text-red-800 dark:text-red-200">
-                    <ul class="space-y-1">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100 space-y-4">
-                    <div class="flex justify-end">
-                        <x-primary-button type="button" @click="nuevo()">Nueva especialidad</x-primary-button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                            <thead>
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                    <th class="px-3 py-2">Nombre</th>
-                                    <th class="px-3 py-2">Descripción</th>
-                                    <th class="px-3 py-2">Usuarios</th>
-                                    <th class="px-3 py-2">Acciones</th>
+            @else
+                {{-- Tabla (desde 768 px) --}}
+                <div class="hidden md:block">
+                    <table class="dr-table">
+                        <caption class="sr-only">Especialidades registradas</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Descripción</th>
+                                <th scope="col" class="text-right">Usuarios</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($especialidades as $especialidad)
+                                <tr class="align-top">
+                                    <td class="font-semibold text-ink">
+                                        <a href="{{ route('especialidades.mostrar', $especialidad->id) }}" class="hover:text-brand-800 hover:underline">{{ $especialidad->nombre }}</a>
+                                    </td>
+                                    <td class="text-ink-soft">{{ $especialidad->descripcion ?? '—' }}</td>
+                                    <td class="text-right tabular-nums text-ink">{{ $especialidad->usuarios_count }}</td>
+                                    <td><x-especialidades.acciones :e="$especialidad" /></td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                                @forelse ($especialidades as $especialidad)
-                                    <tr class="align-top">
-                                        <td class="px-3 py-3">
-                                            <a href="{{ route('especialidades.mostrar', $especialidad->id) }}" class="font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-                                                {{ $especialidad->nombre }}
-                                            </a>
-                                        </td>
-                                        <td class="px-3 py-3 text-gray-600 dark:text-gray-300">{{ $especialidad->descripcion ?? '—' }}</td>
-                                        <td class="px-3 py-3">{{ $especialidad->usuarios_count }}</td>
-                                        <td class="px-3 py-3">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <x-secondary-button @click="editar({{ Js::from($especialidad->only(['id', 'nombre', 'descripcion'])) }})">
-                                                    Modificar
-                                                </x-secondary-button>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-                                                {{-- Eliminar: el id viaja oculto; el controlador verifica que nadie la use --}}
-                                                <form method="POST" action="{{ route('especialidades.eliminar') }}"
-                                                      onsubmit="return confirm({{ Js::from('¿Eliminar la especialidad '.$especialidad->nombre.'?') }});">
-                                                    @csrf
-                                                    <input type="hidden" name="id" value="{{ $especialidad->id }}">
-                                                    <x-danger-button>Eliminar</x-danger-button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
-                                            No hay especialidades registradas.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                {{-- Tarjetas (móvil) --}}
+                <ul class="grid grid-cols-1 gap-3 p-3 sm:p-4 md:hidden">
+                    @foreach ($especialidades as $especialidad)
+                        <li class="dr-item">
+                            <a href="{{ route('especialidades.mostrar', $especialidad->id) }}" class="break-words font-display text-base font-bold text-ink hover:text-brand-800">{{ $especialidad->nombre }}</a>
+                            <p class="break-words text-sm text-ink-soft">{{ $especialidad->descripcion ?? '—' }}</p>
+                            <p class="text-sm text-ink-soft">Usuarios: <span class="font-semibold tabular-nums text-ink">{{ $especialidad->usuarios_count }}</span></p>
+                            <x-especialidades.acciones :e="$especialidad" />
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
+        {{-- Formulario de registro / modificación --}}
+        <section x-ref="formulario" x-show="abierto" x-cloak
+                 x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+                 class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="titulo-formulario">
+            <header class="flex items-start justify-between gap-4 border-b border-line bg-surface/60 px-5 py-4 sm:px-6">
+                <h3 id="titulo-formulario" class="text-lg font-bold text-ink" x-text="form.id ? 'Modificar especialidad' : 'Registrar especialidad'">Registrar especialidad</h3>
+                <button type="button" @click="abierto = false" class="-me-2 rounded-lg p-2 text-ink-soft hover:bg-brand-50 hover:text-brand-800" aria-label="Cerrar formulario">
+                    <x-icon name="close" />
+                </button>
+            </header>
+
+            <form method="POST" :action="form.id ? {{ Js::from(route('especialidades.modificar')) }} : {{ Js::from(route('especialidades.guardar')) }}" class="p-5 sm:p-6">
+                @csrf
+                <input type="hidden" name="formulario" value="datos">
+                {{-- El id viaja oculto solo al modificar --}}
+                <input type="hidden" name="id" :value="form.id" :disabled="! form.id">
+
+                <div class="max-w-2xl space-y-5">
+                    @if ($volvioFormulario && $errors->any())
+                        <x-alerta tipo="error">Revise los datos marcados en el formulario.</x-alerta>
+                    @endif
+
+                    <x-campo name="nombre" label="Nombre" :requerido="true" :errores="$erroresDe('nombre')">
+                        <x-text-input id="nombre" name="nombre" type="text" x-model="form.nombre" maxlength="40" required :error="$volvioFormulario && $errors->has('nombre')" />
+                    </x-campo>
+
+                    <x-campo name="descripcion" label="Descripción (opcional)" :errores="$erroresDe('descripcion')">
+                        <textarea id="descripcion" name="descripcion" rows="3" x-model="form.descripcion" class="{{ $claseCampo('descripcion') }}"></textarea>
+                    </x-campo>
+                </div>
+
+                <div class="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-xs text-ink-soft"><span class="text-red-700" aria-hidden="true">*</span> Campo obligatorio</p>
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row">
+                        <x-secondary-button @click="abierto = false">Cancelar</x-secondary-button>
+                        <x-primary-button x-text="form.id ? 'Guardar cambios' : 'Registrar'">Guardar</x-primary-button>
                     </div>
                 </div>
-            </div>
-
-            {{-- Formulario de registro / modificación --}}
-            <div x-ref="formulario" x-show="abierto" x-cloak class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <section class="max-w-xl">
-                    <header>
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100"
-                            x-text="form.id ? 'Modificar especialidad' : 'Registrar especialidad'"></h2>
-                    </header>
-
-                    <form method="POST" :action="form.id ? {{ Js::from(route('especialidades.modificar')) }} : {{ Js::from(route('especialidades.guardar')) }}" class="mt-6 space-y-6">
-                        @csrf
-                        <input type="hidden" name="formulario" value="datos">
-                        {{-- El id viaja oculto solo al modificar --}}
-                        <input type="hidden" name="id" :value="form.id" :disabled="! form.id">
-
-                        <div>
-                            <x-input-label for="nombre" value="Nombre" />
-                            <x-text-input id="nombre" name="nombre" type="text" class="mt-1 block w-full" x-model="form.nombre" maxlength="40" required />
-                            @if ($volvioFormulario) <x-input-error :messages="$errors->get('nombre')" class="mt-2" /> @endif
-                        </div>
-
-                        <div>
-                            <x-input-label for="descripcion" value="Descripción (opcional)" />
-                            <textarea id="descripcion" name="descripcion" rows="3" x-model="form.descripcion"
-                                      class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"></textarea>
-                            @if ($volvioFormulario) <x-input-error :messages="$errors->get('descripcion')" class="mt-2" /> @endif
-                        </div>
-
-                        <div class="flex items-center gap-4">
-                            <x-primary-button x-text="form.id ? 'Guardar cambios' : 'Registrar'">Guardar</x-primary-button>
-                            <x-secondary-button @click="abierto = false">Cancelar</x-secondary-button>
-                        </div>
-                    </form>
-                </section>
-            </div>
-        </div>
-    </div>
+            </form>
+        </section>
+    </x-pagina>
 </x-app-layout>

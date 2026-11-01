@@ -1,185 +1,88 @@
-{{-- Menú principal con los 5 paquetes. RN-05: muestra solo las opciones del rol del usuario. --}}
-@php
-    $esAdministrador = Auth::user()->rol === 'administrador';
-    $rolVisible = $esAdministrador ? 'Administrador' : 'Odontólogo';
+{{-- Barra lateral con los 5 paquetes. RN-05: muestra solo las opciones del rol del usuario
+     (las calcula MenuService en el layout: $paquetes y $paqueteActivo). --}}
 
-    // Paquetes y opciones visibles para este usuario (App\Services\MenuService).
-    $paquetes = \App\Services\MenuService::paquetes(Auth::user());
+<!-- Fondo oscuro del menú móvil -->
+<div x-show="menu" x-cloak
+     x-transition:enter="transition-opacity duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition-opacity duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-40 bg-brand-900/50 lg:hidden" @click="menu = false" aria-hidden="true"></div>
 
-    // Un paquete se marca como actual si alguna de sus opciones es la página abierta.
-    $paqueteActivo = fn ($paquete) => collect($paquete['opciones'])
-        ->contains(fn ($opcion) => $opcion['activa'] && request()->routeIs($opcion['activa']));
-@endphp
-
-<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-    <!-- Menú de navegación principal -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('panel') }}" class="flex items-center gap-2">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                        <span class="font-semibold text-gray-800 dark:text-gray-200">{{ config('app.name', 'DentalRox') }}</span>
-                    </a>
-                </div>
-
-                <!-- Menús desplegables de los paquetes -->
-                <div class="hidden lg:flex lg:items-center lg:ms-8 lg:gap-1">
-                    @foreach ($paquetes as $paquete)
-                        <x-dropdown align="left" width="w-72">
-                            <x-slot name="trigger">
-                                <button @class([
-                                    'inline-flex items-center px-3 py-2 rounded-md text-sm font-medium leading-4 focus:outline-none transition ease-in-out duration-150',
-                                    'text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-700' => $paqueteActivo($paquete),
-                                    'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300' => ! $paqueteActivo($paquete),
-                                ])>
-                                    <span class="me-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">{{ $paquete['codigo'] }}</span>
-                                    {{ $paquete['corto'] }}
-                                    <svg class="ms-1 fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </x-slot>
-
-                            <x-slot name="content">
-                                <!-- Nombre completo del paquete -->
-                                <div class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-600">
-                                    {{ $paquete['codigo'] }} · {{ $paquete['nombre'] }}
-                                </div>
-
-                                @foreach ($paquete['opciones'] as $opcion)
-                                    @if ($opcion['ruta'])
-                                        {{-- :class y no @class: las directivas no se procesan dentro de un componente --}}
-                                        <x-dropdown-link :href="route($opcion['ruta'])"
-                                                         :class="request()->routeIs($opcion['activa']) ? 'font-semibold text-indigo-700 dark:text-indigo-300' : ''">
-                                            {{ $opcion['nombre'] }}
-                                        </x-dropdown-link>
-                                    @else
-                                        {{-- Opción inhabilitada: en gris y sin enlace --}}
-                                        <div class="flex items-center justify-between px-4 py-2 text-sm leading-5 text-gray-400 dark:text-gray-500 cursor-not-allowed" aria-disabled="true">
-                                            <span>{{ $opcion['nombre'] }}</span>
-                                            <span class="ms-2 rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide">Próximo ciclo</span>
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </x-slot>
-                        </x-dropdown>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Menú desplegable del usuario -->
-            <div class="hidden lg:flex lg:items-center lg:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->nombres }} {{ Auth::user()->apellidos }}</div>
-
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <!-- Usuario y rol -->
-                        <div class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
-                            <div>{{ Auth::user()->usuario }}</div>
-                            <div>{{ $rolVisible }}</div>
-                        </div>
-
-                        <!-- Tablero (los dos roles) -->
-                        <x-dropdown-link :href="route('panel')">
-                            Panel
-                        </x-dropdown-link>
-
-                        <!-- CU03 Cambiar contraseña (P1) -->
-                        <x-dropdown-link :href="route('contrasena.mostrar')">
-                            Cambiar contraseña
-                        </x-dropdown-link>
-
-                        <!-- CU02 Cerrar sesión (POST con token CSRF) -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                Cerrar sesión
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <!-- Botón del menú móvil -->
-            <div class="-me-2 flex items-center lg:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+<aside id="menu-lateral"
+       class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col border-r border-line bg-white transition-transform duration-200 ease-out lg:translate-x-0"
+       :class="{ 'translate-x-0 shadow-pop': menu }"
+       aria-label="Menú principal">
+    <!-- Logo oficial (fondo blanco, proporción original 1983 × 793) -->
+    <div class="flex items-center justify-between border-b border-line px-5">
+        <a href="{{ route('panel') }}" class="block py-1" aria-label="{{ config('app.name', 'DentalRox') }}: ir al panel">
+            <img src="{{ asset('images/dentalrox-logo.png') }}" alt="{{ config('app.name', 'DentalRox') }}"
+                 width="800" height="320" class="h-[84px] w-auto [filter:brightness(1.012)]">
+        </a>
+        <button type="button" class="rounded-lg p-2 text-ink-soft hover:bg-brand-50 hover:text-brand-800 lg:hidden" @click="menu = false" aria-label="Cerrar menú">
+            <x-icon name="close" />
+        </button>
     </div>
 
-    <!-- Menú móvil (responsive): los mismos paquetes, uno debajo de otro -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden lg:hidden">
-        <div class="pt-2 pb-3">
-            @foreach ($paquetes as $paquete)
-                <div class="pt-3">
-                    <div class="px-4 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                        {{ $paquete['codigo'] }} · {{ $paquete['nombre'] }}
-                    </div>
+    <nav class="flex-1 overflow-y-auto px-3 py-4">
+        <a href="{{ route('panel') }}"
+           @class(['nav-item', 'nav-item-active' => request()->routeIs('panel')])
+           @if (request()->routeIs('panel')) aria-current="page" @endif>
+            <span class="flex items-center gap-3"><x-icon name="home" class="h-5 w-5" /> Panel</span>
+        </a>
 
-                    @foreach ($paquete['opciones'] as $opcion)
-                        @if ($opcion['ruta'])
-                            <x-responsive-nav-link :href="route($opcion['ruta'])" :active="request()->routeIs($opcion['activa'])">
-                                {{ $opcion['nombre'] }}
-                            </x-responsive-nav-link>
-                        @else
-                            {{-- Opción inhabilitada: en gris y sin enlace --}}
-                            <div class="flex items-center justify-between ps-4 pe-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-400 dark:text-gray-500 cursor-not-allowed" aria-disabled="true">
-                                <span>{{ $opcion['nombre'] }}</span>
-                                <span class="rounded bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide">Próximo ciclo</span>
-                            </div>
-                        @endif
-                    @endforeach
+        <div class="mt-5 space-y-1">
+            @foreach ($paquetes as $paquete)
+                @php $activo = $paqueteActivo($paquete); @endphp
+                <div x-data="{ abierto: {{ Js::from($activo) }} }">
+                    <button type="button" @click="abierto = ! abierto" :aria-expanded="abierto"
+                            @class([
+                                'flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-start transition-colors duration-150 hover:bg-surface',
+                                'text-ink' => $activo,
+                                'text-ink-soft' => ! $activo,
+                            ])>
+                        <span class="flex min-w-0 items-center gap-3">
+                            <span @class([
+                                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                                'bg-brand-700 text-white' => $activo,
+                                'bg-brand-50 text-brand-700' => ! $activo,
+                            ])>
+                                <x-icon :name="$paquete['codigo']" class="h-[18px] w-[18px]" />
+                            </span>
+                            <span class="min-w-0">
+                                <span class="block text-xs font-bold uppercase tracking-wider text-brand-700">{{ $paquete['codigo'] }}</span>
+                                <span class="block truncate text-sm font-semibold">{{ $paquete['corto'] }}</span>
+                            </span>
+                        </span>
+                        <x-icon name="chevron" class="h-4 w-4 shrink-0 transition-transform duration-150" ::class="{ 'rotate-180': abierto }" />
+                    </button>
+
+                    <ul x-show="abierto" x-cloak
+                        x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                        class="ms-[1.15rem] mt-1 space-y-0.5 border-s border-line ps-3">
+                        @foreach ($paquete['opciones'] as $opcion)
+                            <li>
+                                @if ($opcion['ruta'])
+                                    @php $actual = $opcion['activa'] && request()->routeIs($opcion['activa']); @endphp
+                                    <a href="{{ route($opcion['ruta']) }}"
+                                       @class(['nav-item', 'nav-item-active' => $actual])
+                                       @if ($actual) aria-current="page" @endif>
+                                        {{ $opcion['nombre'] }}
+                                    </a>
+                                @else
+                                    {{-- Opción inhabilitada: en gris y sin enlace --}}
+                                    <div class="flex cursor-not-allowed items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-ink-soft" aria-disabled="true">
+                                        <span>{{ $opcion['nombre'] }}</span>
+                                        <span class="shrink-0 rounded-full bg-surface px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-ink-soft">Próximo ciclo</span>
+                                    </div>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
             @endforeach
         </div>
+    </nav>
 
-        <!-- Opciones del usuario (móvil) -->
-        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->nombres }} {{ Auth::user()->apellidos }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->usuario }} · {{ $rolVisible }}</div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('panel')" :active="request()->routeIs('panel')">
-                    Panel
-                </x-responsive-nav-link>
-
-                <x-responsive-nav-link :href="route('contrasena.mostrar')" :active="request()->routeIs('contrasena.mostrar')">
-                    Cambiar contraseña
-                </x-responsive-nav-link>
-
-                <!-- CU02 Cerrar sesión (POST con token CSRF) -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        Cerrar sesión
-                    </x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
+    <div class="border-t border-line px-5 py-3 text-xs text-ink-soft">
+        Gestión de pacientes, citas, tratamientos y pagos
     </div>
-</nav>
+</aside>

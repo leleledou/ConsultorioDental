@@ -6,3 +6,159 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Sistema de diseño de DentalRox: docs/frontend/DESIGN.md */
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-surface text-ink antialiased;
+    }
+
+    /* Plus Jakarta Sans para títulos; Figtree para el resto. */
+    h1, h2, h3 {
+        letter-spacing: -0.01em;
+        @apply font-display;
+    }
+
+    :focus-visible {
+        outline: 2px solid theme('colors.brand.700');
+        outline-offset: 2px;
+    }
+
+    ::selection {
+        background: theme('colors.brand.100');
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    /* Título de página que muestran las vistas en el slot "header". */
+    .page-header h1,
+    .page-header h2 {
+        @apply font-display text-2xl font-bold leading-tight text-ink;
+    }
+
+    /* Tarjeta base: borde fino, sombra mínima. */
+    .dr-card {
+        @apply rounded-2xl border border-line bg-white shadow-card;
+    }
+
+    /* Enlace de la barra lateral. */
+    .nav-item {
+        @apply relative flex items-center justify-between gap-2 rounded-lg px-3 py-2 max-lg:min-h-11 text-sm font-medium text-ink-soft transition-colors duration-150 hover:bg-brand-50 hover:text-brand-800;
+    }
+
+    .nav-item-active {
+        @apply bg-brand-50 font-semibold text-brand-800;
+    }
+
+    .nav-item-active::before {
+        content: '';
+        @apply absolute -left-3 top-1.5 bottom-1.5 w-1 rounded-r-full bg-brand-500;
+    }
+}
+
+/* Botones, campos e insignias reutilizables (docs/frontend/DESIGN.md). */
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold shadow-sm transition duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50;
+    }
+
+    .btn-sm {
+        @apply gap-1.5 px-3 py-1.5 text-[13px] max-sm:min-h-11;
+    }
+
+    .btn-primary {
+        @apply border-transparent bg-brand-700 text-white hover:bg-brand-800 active:bg-brand-900 focus-visible:ring-brand-500;
+    }
+
+    .btn-secondary {
+        @apply border-gray-300 bg-white text-ink hover:border-brand-300 hover:bg-brand-50 focus-visible:ring-brand-500;
+    }
+
+    .btn-danger {
+        @apply border-transparent bg-red-600 text-white hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-500;
+    }
+
+    /* Acción destructiva discreta (filas de tabla). */
+    .btn-danger-soft {
+        @apply border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50 focus-visible:ring-red-500;
+    }
+
+    .dr-input {
+        @apply block w-full rounded-lg border-gray-300 bg-white text-ink shadow-sm transition duration-150 placeholder:text-ink-mute focus:border-brand-600 focus:ring-brand-600 disabled:bg-gray-50 disabled:text-ink-soft;
+    }
+
+    .dr-input-error {
+        @apply border-red-500 focus:border-red-600 focus:ring-red-600;
+    }
+
+    .badge {
+        @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    }
+}
+
+/* Patrón de listado (docs/frontend/DESIGN.md): tabla en escritorio y tarjetas en móvil. */
+@layer components {
+    .dr-table {
+        @apply min-w-full text-sm;
+    }
+
+    .dr-table thead {
+        @apply border-b border-line bg-surface/60 text-left text-xs font-semibold uppercase tracking-wider text-ink-soft;
+    }
+
+    .dr-table tbody {
+        @apply divide-y divide-line;
+    }
+
+    .dr-table tbody tr {
+        @apply transition-colors hover:bg-brand-50/50;
+    }
+
+    .dr-table th {
+        @apply px-3 py-3;
+    }
+
+    .dr-table td {
+        @apply px-3 py-3.5;
+    }
+
+    .dr-table th:first-child,
+    .dr-table td:first-child,
+    .dr-table th:last-child,
+    .dr-table td:last-child {
+        @apply px-5;
+    }
+
+    /* Elemento de la lista de tarjetas que sustituye a la tabla en pantallas angostas. */
+    .dr-item {
+        @apply space-y-3 rounded-xl border border-line bg-white p-4;
+    }
+
+    /* Táctil: los enlaces de texto de una tarjeta (títulos, nombres) amplían su zona pulsable a 44 px sin cambiar el diseño. */
+    @media (max-width: 639px) {
+        .dr-item a:not(.btn) {
+            position: relative;
+        }
+
+        .dr-item a:not(.btn)::after {
+            content: '';
+            position: absolute;
+            inset: -0.625rem 0;
+        }
+    }
+}

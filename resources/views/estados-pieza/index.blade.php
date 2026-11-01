@@ -1,4 +1,4 @@
-{{-- CU22 Gestionar piezas dentales y estados de pieza (solo administrador). --}}
+{{-- CU22 Gestionar estados de pieza (solo administrador). --}}
 @php
     // El formulario envía un campo oculto "formulario" = "datos"; si vuelve con errores,
     // los datos anteriores (old) son de este formulario y no de las acciones por fila.
@@ -12,18 +12,19 @@
         'color_referencia' => $volvioFormulario ? old('color_referencia', '') : '',
     ];
 
-    $claseCampo = 'mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm';
+    // Errores de un campo del formulario (solo si lo que volvió es ese formulario).
+    $erroresDe = fn (string $campo) => $volvioFormulario ? $errors->get($campo) : [];
+    $claseCampo = fn (string $campo) => 'dr-input'.($volvioFormulario && $errors->has($campo) ? ' dr-input-error' : '');
+    $camposEdicion = ['id', 'codigo', 'nombre', 'descripcion', 'color_referencia'];
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Catálogo de estados de pieza
-        </h2>
+        <x-cabecera-pagina titulo="Catálogo de estados de pieza" subtitulo="Estados con su código y color de referencia para el registro clínico de las piezas." />
     </x-slot>
 
     {{-- nuevo(): formulario vacío para registrar. editar(): formulario con los datos del estado de pieza. --}}
-    <div class="py-12"
+    <x-pagina
          x-data="{
             abierto: {{ Js::from($volvioFormulario) }},
             form: {{ Js::from($formularioInicial) }},
@@ -35,172 +36,179 @@
                 this.form = { ...estadoPieza, descripcion: estadoPieza.descripcion ?? '', color_referencia: estadoPieza.color_referencia ?? '' };
                 this.mostrarFormulario();
             },
+            colorValido() { return /^#[0-9A-Fa-f]{6}$/.test(this.form.color_referencia); },
             mostrarFormulario() {
                 this.abierto = true;
                 this.$nextTick(() => this.$refs.formulario.scrollIntoView({ behavior: 'smooth' }));
             },
          }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            @if (session('exito'))
-                <div class="rounded-md bg-green-50 dark:bg-green-900/30 p-4 text-sm font-medium text-green-800 dark:text-green-200">
-                    {{ session('exito') }}
-                </div>
-            @endif
+        <x-catalogos.pestanas activa="estados" />
 
-            {{-- Errores de las acciones por fila y del buscador --}}
-            @if ($errors->any() && ! $volvioFormulario)
-                <div class="rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm font-medium text-red-800 dark:text-red-200">
-                    <ul class="space-y-1">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+        @if (session('exito'))
+            <x-alerta tipo="exito">{{ session('exito') }}</x-alerta>
+        @endif
 
-            {{-- Pestañas de «Piezas y estados» --}}
-            <div class="flex gap-6 border-b border-gray-200 dark:border-gray-700">
-                <x-nav-link :href="route('estados-pieza.listar')" :active="true">Estados de pieza</x-nav-link>
-                <x-nav-link :href="route('piezas-dentales.listar')" :active="false">Piezas dentales</x-nav-link>
+        {{-- Errores de las acciones por fila y del buscador --}}
+        @if ($errors->any() && ! $volvioFormulario)
+            <x-alerta tipo="error">
+                <ul class="space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-alerta>
+        @endif
+
+        <section class="dr-card overflow-hidden" aria-label="Listado de estados de pieza">
+            {{-- Buscador y botón de registro --}}
+            <div class="flex flex-col gap-4 border-b border-line p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+                <form method="GET" action="{{ route('estados-pieza.listar') }}" role="search" class="flex w-full flex-col gap-2 sm:flex-row lg:max-w-xl">
+                    <div class="relative flex-1">
+                        <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-soft" />
+                        <label for="buscar" class="sr-only">Buscar estado de pieza</label>
+                        <x-text-input id="buscar" name="buscar" type="search" class="pl-10" :value="$buscar" placeholder="Buscar por nombre" />
+                    </div>
+                    <div class="flex gap-2">
+                        <x-primary-button class="flex-1 sm:flex-none">Buscar</x-primary-button>
+                        @if ($buscar)
+                            <a href="{{ route('estados-pieza.listar') }}" class="btn btn-secondary flex-1 sm:flex-none">Limpiar</a>
+                        @endif
+                    </div>
+                </form>
+
+                <x-primary-button type="button" @click="nuevo()" class="w-full lg:w-auto">
+                    <x-icon name="plus" class="h-5 w-5" /> Nuevo estado de pieza
+                </x-primary-button>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100 space-y-4">
-                    {{-- Buscador y botón de registro --}}
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <form method="GET" action="{{ route('estados-pieza.listar') }}" class="flex gap-2 w-full sm:max-w-md">
-                            <x-text-input name="buscar" type="text" class="block w-full" :value="$buscar"
-                                          placeholder="Buscar por nombre" />
-                            <x-primary-button>Buscar</x-primary-button>
-                            @if ($buscar)
-                                <a href="{{ route('estados-pieza.listar') }}" class="self-center text-sm text-gray-600 dark:text-gray-400 underline">Limpiar</a>
-                            @endif
-                        </form>
+            <div class="bg-surface/60 px-4 py-2.5 text-sm text-ink-soft sm:px-5">
+                @if ($buscar)
+                    <span class="font-semibold text-ink">{{ $estadosPieza->total() }}</span> resultado(s) para «{{ $buscar }}»
+                @else
+                    <span class="font-semibold text-ink">{{ $estadosPieza->total() }}</span> estado(s) de pieza registrado(s)
+                @endif
+            </div>
 
-                        <x-primary-button type="button" @click="nuevo()">Nuevo estado de pieza</x-primary-button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                            <thead>
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                    <th class="px-3 py-2">Código</th>
-                                    <th class="px-3 py-2">Nombre</th>
-                                    <th class="px-3 py-2">Color de referencia</th>
-                                    <th class="px-3 py-2">Estado</th>
-                                    <th class="px-3 py-2">Acciones</th>
+            @if ($estadosPieza->isEmpty())
+                <div class="px-6 py-14 text-center">
+                    <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+                        <x-icon name="P4" class="h-7 w-7" />
+                    </span>
+                    <p class="mt-4 text-base font-semibold text-ink">
+                        {{ $buscar ? 'No se encontraron estados de pieza con ese criterio de búsqueda.' : 'No hay estados de pieza registrados.' }}
+                    </p>
+                </div>
+            @else
+                {{-- Tabla (desde 1280 px) --}}
+                <div class="hidden xl:block">
+                    <table class="dr-table">
+                        <caption class="sr-only">Catálogo de estados de pieza</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Código</th>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Descripción</th>
+                                <th scope="col">Color de referencia</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($estadosPieza as $e)
+                                <tr class="align-top">
+                                    <td class="whitespace-nowrap font-semibold">
+                                        <a href="{{ route('estados-pieza.mostrar', $e->id) }}" class="text-brand-700 hover:text-brand-900 hover:underline">{{ $e->codigo }}</a>
+                                    </td>
+                                    <td class="font-semibold text-ink">{{ $e->nombre }}</td>
+                                    <td class="max-w-xs whitespace-pre-line break-words text-ink-soft">{{ $e->descripcion ?? '—' }}</td>
+                                    <td class="whitespace-nowrap"><x-estados-pieza.color :color="$e->color_referencia" /></td>
+                                    <td><x-insignia-activo :activo="$e->estado === 'activo'" /></td>
+                                    <td><x-catalogos.acciones :registro="$e" ruta="estados-pieza" etiqueta="el estado de pieza" :campos="$camposEdicion" /></td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                                @forelse ($estadosPieza as $e)
-                                    <tr class="align-top">
-                                        <td class="px-3 py-3">
-                                            <a href="{{ route('estados-pieza.mostrar', $e->id) }}" class="font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-                                                {{ $e->codigo }}
-                                            </a>
-                                        </td>
-                                        <td class="px-3 py-3">{{ $e->nombre }}</td>
-                                        <td class="px-3 py-3">{{ $e->color_referencia ?? '—' }}</td>
-                                        <td class="px-3 py-3">
-                                            @if ($e->estado === 'activo')
-                                                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-200 whitespace-nowrap">Activo</span>
-                                            @else
-                                                <span class="inline-flex rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Inactivo</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-3 py-3">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <x-secondary-button
-                                                    @click="editar({{ Js::from($e->only(['id', 'codigo', 'nombre', 'descripcion', 'color_referencia'])) }})">
-                                                    Modificar
-                                                </x-secondary-button>
-
-                                                {{-- Dar de baja / habilitar (el id viaja oculto; no se borra, RNF-06) --}}
-                                                @if ($e->estado === 'activo')
-                                                    <form method="POST" action="{{ route('estados-pieza.eliminar') }}"
-                                                          onsubmit="return confirm({{ Js::from('¿Dar de baja el estado de pieza '.$e->nombre.'?') }});">
-                                                        @csrf
-                                                        <input type="hidden" name="id" value="{{ $e->id }}">
-                                                        <x-danger-button>Dar de baja</x-danger-button>
-                                                    </form>
-                                                @else
-                                                    <form method="POST" action="{{ route('estados-pieza.habilitar') }}">
-                                                        @csrf
-                                                        <input type="hidden" name="id" value="{{ $e->id }}">
-                                                        <x-secondary-button type="submit">Habilitar</x-secondary-button>
-                                                    </form>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
-                                            {{ $buscar ? 'No se encontraron estados de pieza con ese criterio de búsqueda.' : 'No hay estados de pieza registrados.' }}
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{ $estadosPieza->links() }}
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-            </div>
 
-            {{-- Formulario de registro / modificación --}}
-            <div x-ref="formulario" x-show="abierto" x-cloak class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <section>
-                    <header>
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100"
-                            x-text="form.id ? 'Modificar estado de pieza' : 'Registrar estado de pieza'"></h2>
-                    </header>
+                {{-- Tarjetas (móvil y tablet) --}}
+                <ul class="grid grid-cols-1 gap-3 p-3 sm:p-4 md:grid-cols-2 xl:hidden">
+                    @foreach ($estadosPieza as $e)
+                        <li class="dr-item">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <a href="{{ route('estados-pieza.mostrar', $e->id) }}" class="text-sm font-semibold text-brand-700 hover:text-brand-900 hover:underline">{{ $e->codigo }}</a>
+                                    <p class="break-words font-display text-base font-bold text-ink">{{ $e->nombre }}</p>
+                                </div>
+                                <x-insignia-activo :activo="$e->estado === 'activo'" />
+                            </div>
+                            <p class="whitespace-pre-line break-words text-sm text-ink-soft">{{ $e->descripcion ?? '—' }}</p>
+                            <p class="text-sm"><span class="text-xs text-ink-soft">Color de referencia</span><br><x-estados-pieza.color :color="$e->color_referencia" /></p>
+                            <x-catalogos.acciones :registro="$e" ruta="estados-pieza" etiqueta="el estado de pieza" :campos="$camposEdicion" />
+                        </li>
+                    @endforeach
+                </ul>
 
+                @if ($estadosPieza->hasPages())
+                    <div class="border-t border-line p-4 sm:px-5">
+                        {{ $estadosPieza->links() }}
+                    </div>
+                @endif
+            @endif
+        </section>
+
+        {{-- Formulario de registro / modificación --}}
+        <section x-ref="formulario" x-show="abierto" x-cloak
+                 x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+                 class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="titulo-formulario">
+            <header class="flex items-start justify-between gap-4 border-b border-line bg-surface/60 px-5 py-4 sm:px-6">
+                <h3 id="titulo-formulario" class="text-lg font-bold text-ink" x-text="form.id ? 'Modificar estado de pieza' : 'Registrar estado de pieza'">Registrar estado de pieza</h3>
+                <button type="button" @click="abierto = false" class="-me-2 rounded-lg p-2 text-ink-soft hover:bg-brand-50 hover:text-brand-800" aria-label="Cerrar formulario">
+                    <x-icon name="close" />
+                </button>
+            </header>
+
+            <form method="POST" :action="form.id ? {{ Js::from(route('estados-pieza.modificar')) }} : {{ Js::from(route('estados-pieza.guardar')) }}" class="p-5 sm:p-6">
+                @csrf
+                <input type="hidden" name="formulario" value="datos">
+                {{-- El id viaja oculto solo al modificar --}}
+                <input type="hidden" name="id" :value="form.id" :disabled="! form.id">
+
+                <div class="max-w-3xl space-y-5">
                     @if ($volvioFormulario && $errors->any())
-                        <div class="mt-4 rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm font-medium text-red-800 dark:text-red-200">
-                            Revise los datos marcados en el formulario.
-                        </div>
+                        <x-alerta tipo="error">Revise los datos marcados en el formulario.</x-alerta>
                     @endif
 
-                    <form method="POST" :action="form.id ? {{ Js::from(route('estados-pieza.modificar')) }} : {{ Js::from(route('estados-pieza.guardar')) }}" class="mt-6 space-y-6">
-                        @csrf
-                        <input type="hidden" name="formulario" value="datos">
-                        {{-- El id viaja oculto solo al modificar --}}
-                        <input type="hidden" name="id" :value="form.id" :disabled="! form.id">
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                        <x-campo name="codigo" label="Código" :requerido="true" :errores="$erroresDe('codigo')">
+                            <x-text-input id="codigo" name="codigo" type="text" x-model="form.codigo" maxlength="10" required :error="$volvioFormulario && $errors->has('codigo')" />
+                        </x-campo>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <x-input-label for="codigo" value="Código" />
-                                <x-text-input id="codigo" name="codigo" type="text" class="mt-1 block w-full" x-model="form.codigo" maxlength="10" required />
-                                @if ($volvioFormulario) <x-input-error :messages="$errors->get('codigo')" class="mt-2" /> @endif
-                            </div>
+                        <x-campo name="nombre" label="Nombre" class="sm:col-span-2" :requerido="true" :errores="$erroresDe('nombre')">
+                            <x-text-input id="nombre" name="nombre" type="text" x-model="form.nombre" maxlength="40" required :error="$volvioFormulario && $errors->has('nombre')" />
+                        </x-campo>
+                    </div>
 
-                            <div>
-                                <x-input-label for="nombre" value="Nombre" />
-                                <x-text-input id="nombre" name="nombre" type="text" class="mt-1 block w-full" x-model="form.nombre" maxlength="40" required />
-                                @if ($volvioFormulario) <x-input-error :messages="$errors->get('nombre')" class="mt-2" /> @endif
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                <x-input-label for="descripcion" value="Descripción (opcional)" />
-                                <textarea id="descripcion" name="descripcion" rows="3" class="{{ $claseCampo }}" x-model="form.descripcion"></textarea>
-                                @if ($volvioFormulario) <x-input-error :messages="$errors->get('descripcion')" class="mt-2" /> @endif
-                            </div>
-
-                            <div>
-                                <x-input-label for="color_referencia" value="Color de referencia (opcional)" />
-                                <x-text-input id="color_referencia" name="color_referencia" type="text" class="mt-1 block w-full" x-model="form.color_referencia" maxlength="7" placeholder="#RRGGBB" />
-                                @if ($volvioFormulario) <x-input-error :messages="$errors->get('color_referencia')" class="mt-2" /> @endif
-                            </div>
+                    <x-campo name="color_referencia" label="Color de referencia (opcional)" :errores="$erroresDe('color_referencia')">
+                        <div class="relative">
+                            <span class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border border-line bg-white" aria-hidden="true"
+                                  :style="colorValido() ? 'background-color:' + form.color_referencia : ''"></span>
+                            <x-text-input id="color_referencia" name="color_referencia" type="text" class="pl-11 uppercase placeholder:normal-case" x-model="form.color_referencia" maxlength="7" placeholder="#RRGGBB" :error="$volvioFormulario && $errors->has('color_referencia')" />
                         </div>
+                    </x-campo>
 
-                        <div class="flex items-center gap-4">
-                            <x-primary-button x-text="form.id ? 'Guardar cambios' : 'Registrar'">Guardar</x-primary-button>
-                            <x-secondary-button @click="abierto = false">Cancelar</x-secondary-button>
-                        </div>
-                    </form>
-                </section>
-            </div>
-        </div>
-    </div>
+                    <x-campo name="descripcion" label="Descripción (opcional)" :errores="$erroresDe('descripcion')">
+                        <textarea id="descripcion" name="descripcion" rows="3" x-model="form.descripcion" class="{{ $claseCampo('descripcion') }}"></textarea>
+                    </x-campo>
+                </div>
+
+                <div class="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-xs text-ink-soft"><span class="text-red-700" aria-hidden="true">*</span> Campo obligatorio</p>
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row">
+                        <x-secondary-button @click="abierto = false">Cancelar</x-secondary-button>
+                        <x-primary-button x-text="form.id ? 'Guardar cambios' : 'Registrar'">Guardar</x-primary-button>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </x-pagina>
 </x-app-layout>

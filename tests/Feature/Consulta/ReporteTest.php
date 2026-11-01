@@ -41,7 +41,8 @@ it('cada pantalla carga para los dos roles', function (string $ruta, string $rol
 it('el menú de reportes queda activo y habilitado', function () {
     $html = $this->actingAs($this->usuario)->get(route('reportes.agenda'))->getContent();
 
-    expect($html)->toMatch('/<a[^>]*font-semibold[^>]*reportes\/clinicos"|<a[^>]*reportes\/clinicos"[^>]*font-semibold/s');
+    // El rediseño marca la opción activa del menú con aria-current="page".
+    expect($html)->toMatch('/<a[^>]*reportes\/clinicos"[^>]*aria-current="page"/s');
 });
 
 it('estático pacientes atendidos agrupa por paciente y solo cuenta atendidas del periodo', function () {
