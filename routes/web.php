@@ -19,6 +19,8 @@ use App\Http\Controllers\PagoController;
 use App\Http\Controllers\PiezaDentalController;
 use App\Http\Controllers\PlanTratamientoController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\SesionController;
+use App\Http\Controllers\SesionMaterialController;
 use App\Http\Controllers\TarifaController;
 use App\Http\Controllers\TipoEstudioController;
 use App\Http\Controllers\TratamientoAplicadoController;
@@ -31,7 +33,7 @@ use Illuminate\Support\Facades\Route;
  * Rutas de DentalRox - Ciclo 1: Administración de Usuarios y Seguridad, catálogo de
  * especialidades y Gestión de Pacientes. Ciclo 2: catálogo de tratamientos, citas y agenda.
  * Ciclo 3: catálogos clínicos y de servicios, atención clínica, pagos y reportes.
- * Ciclo 4: odontograma.
+ * Ciclo 4: odontograma, historia clínica consolidada y sesiones de evolución.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -212,6 +214,8 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::controller(HistoriaClinicaController::class)->group(function () {
             Route::post('/update', 'update')->name('historias.modificar');
             Route::get('/{paciente}', 'show')->whereNumber('paciente')->name('historias.mostrar');
+            // CU24 Consultar historia clínica consolidada (RF-13). Solo lectura.
+            Route::get('/{paciente}/consolidada', 'consolidada')->whereNumber('paciente')->name('historias.consolidada');
         });
 
         Route::prefix('antecedentes')->controller(HistoriaAntecedenteController::class)->group(function () {
@@ -273,6 +277,23 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::post('/odontogramas/detalle', 'store')->name('odontogramas.detalle.guardar');
         Route::post('/odontogramas/detalle/update', 'update')->name('odontogramas.detalle.modificar');
         Route::post('/odontogramas/detalle/delete', 'delete')->name('odontogramas.detalle.quitar');
+    });
+
+    // CU30 Registrar sesión de evolución (RF-43 a RF-50, RF-66) y CU31 Consultar evolución
+    // del tratamiento. Los dos roles atienden: sin middleware rol.
+    Route::controller(SesionController::class)->group(function () {
+        Route::get('/tratamientos-aplicados/{ta}/sesiones/crear', 'create')->whereNumber('ta')->name('sesiones.crear');
+        Route::get('/tratamientos-aplicados/{ta}/evolucion', 'evolucion')->whereNumber('ta')->name('sesiones.evolucion');
+        Route::get('/citas/{cita}/sesion/crear', 'desdeCita')->whereNumber('cita')->name('sesiones.desde-cita');
+        Route::post('/sesiones', 'store')->name('sesiones.guardar');
+        Route::get('/sesiones/{id}', 'show')->whereNumber('id')->name('sesiones.mostrar');
+    });
+
+    // CU30: materiales usados en la sesión (RF-45, RF-46). El id viaja oculto en el formulario.
+    Route::controller(SesionMaterialController::class)->group(function () {
+        Route::post('/sesiones/materiales', 'store')->name('sesiones.material.guardar');
+        Route::post('/sesiones/materiales/update', 'update')->name('sesiones.material.modificar');
+        Route::post('/sesiones/materiales/delete', 'delete')->name('sesiones.material.quitar');
     });
 });
 

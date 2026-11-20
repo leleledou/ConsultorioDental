@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ValoracionImplante extends Model
 {
@@ -33,4 +34,25 @@ class ValoracionImplante extends Model
         'observaciones_clinicas',
         'resultado',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'fecha_valoracion' => 'date',
+            'requiere_injerto' => 'boolean',
+        ];
+    }
+
+    /**
+     * Pieza dental valorada para el implante.
+     */
+    public function pieza(): BelongsTo
+    {
+        return $this->belongsTo(PiezaDental::class, 'pieza_dental_id');
+    }
 }

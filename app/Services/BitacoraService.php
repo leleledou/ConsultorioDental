@@ -133,6 +133,13 @@ class BitacoraService
     public const MODIFICAR_DETALLE_ODONTOGRAMA = 'MODIFICAR_DETALLE_ODONTOGRAMA';
     public const QUITAR_DETALLE_ODONTOGRAMA = 'QUITAR_DETALLE_ODONTOGRAMA';
 
+    // Acciones de CU30 Registrar sesión de evolución y de los materiales de la sesión.
+    public const REGISTRAR_SESION = 'REGISTRAR_SESION';
+    public const AMPLIAR_SESIONES = 'AMPLIAR_SESIONES';
+    public const REGISTRAR_MATERIAL_SESION = 'REGISTRAR_MATERIAL_SESION';
+    public const MODIFICAR_MATERIAL_SESION = 'MODIFICAR_MATERIAL_SESION';
+    public const QUITAR_MATERIAL_SESION = 'QUITAR_MATERIAL_SESION';
+
     /**
      * Devuelve la lista de los valores de todas las acciones (todas las constantes).
      * Se usa para validar el filtro "accion" de CU07 Consultar bitácora.

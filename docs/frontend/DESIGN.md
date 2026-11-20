@@ -151,6 +151,13 @@ Pantallas: `piezas-dentales`, `estados-pieza` y `metodos-pago` (`index` y `show`
 - **ids únicos**: `x-usuarios.acciones` recibe `sufijo` (`-tabla`/`-tarjeta`) porque se dibuja en la tabla y en la tarjeta.
 - **Páginas de error**: `resources/views/errors/{403,404,419,500,minimal}.blade.php` usan `x-error-pagina` (documento propio: logo, código, título `h1`, mensaje fijo y «Ir al panel»/«Ir al inicio de sesión» + «Volver»). No muestran el mensaje de la excepción ni datos internos y conservan el código HTTP; `minimal` cubre 401, 429, 503, etc. Con `APP_DEBUG=true` Laravel sigue mostrando su página de depuración.
 
+## Atención Clínica del ciclo 4 (implementado)
+Pantallas: `odontogramas/index`, `create`, `show` y `comparar`; `historias/consolidada`; `sesiones/create`, `elegir-tratamiento`, `show` y `evolucion`.
+- **Odontograma (RNF-26)**: piezas como botones de 44 px pintados con el `color_referencia` del estado (texto oscuro o blanco según luminancia), `title` y `aria-label` con el estado; piezas no registradas con borde punteado. La edición de una pieza usa `<x-modal name="pieza">`. Leyenda siempre visible bajo el gráfico. Tipo inicial = insignia turquesa, evolución = azul; activo = verde, anulado = rojo.
+- **Comparación**: filas con cambio en fondo ámbar suave e insignia «Cambió»; contador como insignia en la cabecera del resultado.
+- **Historia consolidada**: índice de anclas (`btn-sm`) arriba y ocho secciones `dr-card` con `scroll-mt-24`; miniatura del odontograma con cuadros de 24 px y resumen por estado con texto. El estado de cuenta repite el código de color financiero (neutro, verde, ámbar).
+- **Sesiones**: el avance es «Sesión X de Y» con barra (`role="progressbar"` en la evolución). La evolución es una línea de tiempo vertical con marcador numerado (turquesa realizada, ámbar pendiente, gris tachado anulada). La advertencia del RF-50 es `x-alerta tipo="aviso"` con una casilla táctil `has-[:checked]`. Los materiales del formulario de sesión son filas dinámicas con Alpine; en la ficha, una lista única con edición en línea.
+
 ## Pendiente
 - Pruebas funcionales finales con datos ficticios (solo en la base auxiliar), decisión sobre `APP_LOCALE` y limpieza de los componentes Breeze sobrantes.
 - Componentes sobrantes (sin eliminar): `components/nav-link`, `components/responsive-nav-link` y `welcome.blade.php` (Breeze) ya no se usan.

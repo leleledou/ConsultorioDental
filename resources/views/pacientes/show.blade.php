@@ -104,6 +104,10 @@
                 <a href="{{ route('odontogramas.listar', $paciente->id) }}" class="btn btn-secondary">
                     Odontogramas
                 </a>
+                {{-- CU24 Consultar historia clínica consolidada --}}
+                <a href="{{ route('historias.consolidada', $paciente->id) }}" class="btn btn-secondary">
+                    Historia consolidada
+                </a>
             @endif
             <a href="{{ route('planes.listar', ['paciente_id' => $paciente->id]) }}" class="btn btn-secondary">
                 Planes de tratamiento

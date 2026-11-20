@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\AntecedenteMedico;
 use App\Models\HistoriaClinica;
+use App\Models\Paciente;
 use App\Services\BitacoraService;
+use App\Services\HistoriaClinicaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,11 +14,31 @@ use Illuminate\View\View;
 
 /**
  * CU23 Gestionar historia clínica: hábitos y observaciones generales.
+ * CU24 Consultar historia clínica consolidada (RF-13): solo lectura, sin bitácora.
  * Para los dos roles (el administrador también es odontólogo).
  * La historia se abre al registrar al paciente y nunca se elimina (RF-10).
  */
 class HistoriaClinicaController extends Controller
 {
+    public function __construct(private HistoriaClinicaService $historias)
+    {
+    }
+
+    // CU24: MOSTRAR la historia clínica consolidada de UN paciente (RF-13).
+    public function consolidada($paciente): View|RedirectResponse
+    {
+        $paciente = Paciente::findOrFail($paciente);
+
+        $datos = $this->historias->consolidar($paciente);
+
+        if ($datos === null) {
+            return redirect()->route('pacientes.mostrar', $paciente->id)
+                ->withErrors(['operacion' => 'El paciente aún no tiene historia clínica registrada.']);
+        }
+
+        return view('historias.consolidada', $datos);
+    }
+
     // MOSTRAR la historia clínica de UN paciente, con el catálogo de antecedentes para asignar.
     public function show($paciente): View
     {

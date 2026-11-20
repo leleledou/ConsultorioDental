@@ -107,4 +107,20 @@ class Paciente extends Model
             });
         });
     }
+
+    /**
+     * Estudios diagnósticos del paciente.
+     */
+    public function estudiosDiagnosticos(): HasMany
+    {
+        return $this->hasMany(EstudioDiagnostico::class, 'paciente_id');
+    }
+
+    /**
+     * Valoraciones para implante del paciente.
+     */
+    public function valoracionesImplante(): HasMany
+    {
+        return $this->hasMany(ValoracionImplante::class, 'paciente_id');
+    }
 }

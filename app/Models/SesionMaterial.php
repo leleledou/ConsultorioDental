@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SesionMaterial extends Model
 {
@@ -27,4 +28,20 @@ class SesionMaterial extends Model
         'cantidad',
         'observacion',
     ];
+
+    /**
+     * Sesión en la que se usó el material.
+     */
+    public function sesion(): BelongsTo
+    {
+        return $this->belongsTo(Sesion::class, 'sesion_id');
+    }
+
+    /**
+     * Material del catálogo.
+     */
+    public function material(): BelongsTo
+    {
+        return $this->belongsTo(Material::class, 'material_id');
+    }
 }

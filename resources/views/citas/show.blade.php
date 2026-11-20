@@ -129,6 +129,13 @@
                     <x-icon name="arrow-left" class="h-4 w-4" /> Volver a la agenda
                 </a>
 
+                {{-- CU30 / RF-49: una cita atendida genera la sesión de evolución --}}
+                @if ($cita->estado->nombre === \App\Models\EstadoCita::ATENDIDA)
+                    <a href="{{ route('sesiones.desde-cita', $cita->id) }}" class="btn btn-primary">
+                        <x-icon name="plus" class="h-4 w-4" /> Registrar sesión
+                    </a>
+                @endif
+
                 {{-- CU11: solo una cita programada se puede reprogramar o cancelar --}}
                 @if ($cita->estaProgramada())
                     <x-secondary-button x-data @click="$dispatch('open-modal', 'reprogramar')"><x-icon name="calendar" class="h-4 w-4" /> Reprogramar</x-secondary-button>

@@ -106,4 +106,12 @@ class Cita extends Model
     {
         $this->observaciones = trim(($this->observaciones ?? '')."\n".$texto);
     }
+
+    /**
+     * Tratamiento aplicado que se atiende en la cita (RF-66). Puede ser null.
+     */
+    public function tratamientoAplicado(): BelongsTo
+    {
+        return $this->belongsTo(TratamientoAplicado::class, 'tratamiento_aplicado_id');
+    }
 }

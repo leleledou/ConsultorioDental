@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EstudioDiagnostico extends Model
 {
@@ -33,4 +34,33 @@ class EstudioDiagnostico extends Model
         'hallazgos',
         'fecha_registro',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'fecha_estudio' => 'date',
+            'fecha_registro' => 'date',
+        ];
+    }
+
+    /**
+     * Tipo de estudio del catálogo.
+     */
+    public function tipoEstudio(): BelongsTo
+    {
+        return $this->belongsTo(TipoEstudio::class, 'tipo_estudio_id');
+    }
+
+    /**
+     * Pieza dental estudiada. Puede ser null.
+     */
+    public function pieza(): BelongsTo
+    {
+        return $this->belongsTo(PiezaDental::class, 'pieza_dental_id');
+    }
 }

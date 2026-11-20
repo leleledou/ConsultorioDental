@@ -124,6 +124,16 @@
             <a href="{{ route('planes.mostrar', $tratamiento->plan_tratamiento_id) }}" class="btn btn-secondary">
                 <x-icon name="arrow-left" class="h-4 w-4" /> Volver al plan
             </a>
+
+            {{-- CU30 Registrar sesión de evolución y CU31 Consultar evolución del tratamiento --}}
+            @if ($tratamiento->estado !== 'cancelado')
+                <a href="{{ route('sesiones.crear', $tratamiento->id) }}" class="btn btn-primary">
+                    <x-icon name="plus" class="h-4 w-4" /> Registrar sesión
+                </a>
+            @endif
+            <a href="{{ route('sesiones.evolucion', $tratamiento->id) }}" class="btn btn-secondary">
+                <x-icon name="clock" class="h-4 w-4" /> Ver evolución
+            </a>
         </div>
     </x-pagina>
 </x-app-layout>
