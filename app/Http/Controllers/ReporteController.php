@@ -4,20 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Models\Especialidad;
 use App\Models\EstadoCita;
+use App\Models\HistoriaClinica;
 use App\Models\MetodoPago;
 use App\Models\Paciente;
 use App\Models\Tratamiento;
 use App\Models\User;
 use App\Services\ReporteService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
  * CU42 Generar reportes clínicos, CU43 Generar reportes de agenda, CU44 Generar reportes
  * financieros y CU45 Exportar reporte. Para los dos roles. Las consultas y los archivos
  * están en ReporteService. Los reportes solo leen datos: no se registran en la bitácora.
+ *
+ * Ciclo 4: RF-84 historia clínica imprimible y RF-85 comparativo de odontogramas, documentos
+ * por paciente que se ven en pantalla y se exportan por CU45 (solo a PDF).
  */
 class ReporteController extends Controller
 {
@@ -33,6 +39,10 @@ class ReporteController extends Controller
             'especialidades' => Especialidad::orderBy('nombre')->get(),
             'tratamientos' => Tratamiento::orderBy('nombre')->get(),
             'estados' => ['planificado', 'en proceso', 'concluido', 'cancelado'],
+            // RF-84 y RF-85: buscador de paciente (misma búsqueda de CU09), hasta 10 resultados.
+            'pacientesDocumento' => $request->filled('buscar_paciente')
+                ? Paciente::buscar($request->input('buscar_paciente'))->orderBy('apellidos')->orderBy('nombres')->limit(10)->get()
+                : collect(),
         ]);
     }
 
@@ -56,15 +66,51 @@ class ReporteController extends Controller
         ]);
     }
 
+    // RF-84: MOSTRAR la historia clínica imprimible de UN paciente.
+    public function historiaClinica($paciente): View|RedirectResponse
+    {
+        $paciente = Paciente::findOrFail($paciente);
+        $datos = $this->reportes->historiaClinica($paciente->id);
+
+        if ($datos === null) {
+            return redirect()->route('pacientes.mostrar', $paciente->id)
+                ->withErrors(['operacion' => 'El paciente aún no tiene historia clínica registrada.']);
+        }
+
+        return view('reportes.historia', ['datos' => $datos]);
+    }
+
+    // RF-85: MOSTRAR el comparativo de dos odontogramas (GET a y b; sin ellos, el inicial y el último de evolución).
+    public function comparativoOdontograma(Request $request, $paciente): View|RedirectResponse
+    {
+        $paciente = Paciente::findOrFail($paciente);
+        $par = $request->validate($this->reglasComparativo($paciente->id), $this->mensajes());
+
+        // Hacen falta los dos odontogramas, y distintos (mismo mensaje que CU26 flujo A1).
+        if ($this->parInvalido($par)) {
+            return redirect()->route('reportes.odontogramas', $paciente->id)
+                ->withErrors(['operacion' => 'Seleccione dos odontogramas diferentes para comparar.']);
+        }
+
+        $datos = $this->reportes->comparativoOdontograma($paciente->id, $par['a'] ?? null, $par['b'] ?? null);
+
+        return view('reportes.odontogramas', ['datos' => $datos]);
+    }
+
     // CU45: EXPORTAR a PDF o Excel la misma consulta del reporte en pantalla.
+    // También exporta los documentos por paciente de RF-84 y RF-85, solo a PDF.
     public function exportar(Request $request): Response
     {
         $familia = $request->validate(
-            ['reporte' => ['required', Rule::in(array_keys(ReporteService::ESTATICOS))]],
+            ['reporte' => ['required', Rule::in([...array_keys(ReporteService::ESTATICOS), ...array_keys(ReporteService::DOCUMENTOS)])]],
             ['reporte.required' => 'No se indicó el reporte.', 'reporte.in' => 'El reporte indicado no es válido.']
         );
 
         $reporte = $familia['reporte'];
+
+        if (isset(ReporteService::DOCUMENTOS[$reporte])) {
+            return $this->exportarDocumento($request, $reporte);
+        }
 
         $datos = $request->validate($this->reglas($reporte) + [
             'formato' => ['required', Rule::in(['pdf', 'excel'])],
@@ -84,6 +130,73 @@ class ReporteController extends Controller
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => "attachment; filename=\"{$archivo}.xlsx\"",
         ]);
+    }
+
+    // CU45 para RF-84 y RF-85: misma validación de formato, pero un documento clínico solo va a PDF.
+    private function exportarDocumento(Request $request, string $reporte): Response
+    {
+        $datos = $request->validate([
+            'paciente' => ['required', 'integer', 'exists:pacientes,id'],
+            'formato' => ['required', Rule::in(['pdf', 'excel'])],
+        ], $this->mensajes());
+
+        if ($datos['formato'] !== 'pdf') {
+            throw ValidationException::withMessages(['formato' => 'Este documento solo se puede exportar a PDF.']);
+        }
+
+        if ($reporte === 'historia') {
+            $documento = $this->reportes->historiaClinica($datos['paciente']);
+
+            if ($documento === null) {
+                throw ValidationException::withMessages(['operacion' => 'El paciente aún no tiene historia clínica registrada.']);
+            }
+
+            $contenido = $this->reportes->exportarHistoriaPdf($documento);
+        } else {
+            $par = $request->validate($this->reglasComparativo($datos['paciente']), $this->mensajes());
+
+            if ($this->parInvalido($par)) {
+                throw ValidationException::withMessages(['operacion' => 'Seleccione dos odontogramas diferentes para comparar.']);
+            }
+
+            $documento = $this->reportes->comparativoOdontograma($datos['paciente'], $par['a'] ?? null, $par['b'] ?? null);
+
+            if ($documento['aviso']) {
+                throw ValidationException::withMessages(['operacion' => $documento['aviso']]);
+            }
+
+            $contenido = $this->reportes->exportarComparativoPdf($documento);
+        }
+
+        $archivo = $documento['nombre_archivo'].'_'.today()->format('Y-m-d');
+
+        return response($contenido, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "attachment; filename=\"{$archivo}.pdf\"",
+        ]);
+    }
+
+    // RF-85: los odontogramas a y b son opcionales, pero deben ser de la historia del paciente.
+    private function reglasComparativo(int $pacienteId): array
+    {
+        $delPaciente = Rule::exists('odontogramas', 'id')->where(fn ($q) => $q->whereIn(
+            'historia_clinica_id',
+            HistoriaClinica::where('paciente_id', $pacienteId)->select('id')
+        ));
+
+        return [
+            'a' => ['nullable', 'integer', $delPaciente],
+            'b' => ['nullable', 'integer', $delPaciente],
+        ];
+    }
+
+    // Se indicó solo uno de los dos odontogramas, o el mismo dos veces.
+    private function parInvalido(array $par): bool
+    {
+        $a = $par['a'] ?? null;
+        $b = $par['b'] ?? null;
+
+        return ($a === null) !== ($b === null) || ($a !== null && (int) $a === (int) $b);
     }
 
     // Secuencia común de CU42 a CU44: sin parámetros abre la pantalla; con modo genera el reporte.
@@ -192,6 +305,13 @@ class ReporteController extends Controller
             'metodo_pago_id.integer' => 'El método de pago indicado no es válido.',
             'metodo_pago_id.exists' => 'El método de pago indicado no existe.',
             'estado.in' => 'El estado indicado no es válido.',
+            'paciente.required' => 'No se indicó el paciente.',
+            'paciente.integer' => 'El paciente indicado no es válido.',
+            'paciente.exists' => 'El paciente indicado no existe.',
+            'a.integer' => 'El odontograma A indicado no es válido.',
+            'a.exists' => 'El odontograma A no pertenece al paciente.',
+            'b.integer' => 'El odontograma B indicado no es válido.',
+            'b.exists' => 'El odontograma B no pertenece al paciente.',
             'formato.required' => 'El formato debe ser pdf o excel.',
             'formato.in' => 'El formato debe ser pdf o excel.',
         ];

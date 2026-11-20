@@ -33,12 +33,17 @@
     </x-slot>
 
     <x-pagina>
-        {{-- Índice de secciones --}}
-        <nav class="flex flex-wrap gap-2" aria-label="Secciones de la historia">
-            @foreach ($secciones as $ancla => $texto)
-                <a href="#{{ $ancla }}" class="btn btn-secondary btn-sm">{{ $texto }}</a>
-            @endforeach
-        </nav>
+        {{-- Índice de secciones y RF-84 historia clínica imprimible --}}
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <nav class="flex flex-wrap gap-2" aria-label="Secciones de la historia">
+                @foreach ($secciones as $ancla => $texto)
+                    <a href="#{{ $ancla }}" class="btn btn-secondary btn-sm">{{ $texto }}</a>
+                @endforeach
+            </nav>
+            <a href="{{ route('reportes.historia', $paciente->id) }}" class="btn btn-primary btn-sm shrink-0 self-start">
+                <x-icon name="printer" class="h-4 w-4" /> Imprimir historia clínica
+            </a>
+        </div>
 
         {{-- 1. Datos del paciente --}}
         <section id="paciente" class="dr-card scroll-mt-24 p-5 sm:p-6" aria-labelledby="titulo-paciente">

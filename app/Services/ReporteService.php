@@ -4,11 +4,15 @@ namespace App\Services;
 
 use App\Models\Cita;
 use App\Models\EstadoCita;
+use App\Models\Odontograma;
+use App\Models\Paciente;
+use App\Models\Sesion;
 use App\Models\TratamientoAplicado;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -24,6 +28,9 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
  * Los dos métodos devuelven la misma estructura: titulo, nombre_archivo, periodo,
  * columnas (clave => encabezado), numericas, montos (claves de columnas y etiquetas de
  * totales que son dinero), filas y totales (etiqueta => valor).
+ *
+ * RF-84 (historiaClinica) y RF-85 (comparativoOdontograma) no son reportes tabulares por
+ * periodo sino documentos por paciente: tienen sus propios métodos, vistas y PDF.
  */
 class ReporteService
 {
@@ -60,6 +67,9 @@ class ReporteService
             'costo_acordado' => ['Costo acordado', 'ta.costo_acordado'],
             'sesiones_planificadas' => ['Sesiones planificadas', 'ta.sesiones_planificadas'],
             'sesiones_realizadas' => ['Sesiones realizadas', "(SELECT COUNT(*) FROM sesiones s WHERE s.tratamiento_aplicado_id = ta.id AND s.estado = 'realizada')"],
+            'ultima_sesion' => ['Última sesión', "(SELECT MAX(s.fecha) FROM sesiones s WHERE s.tratamiento_aplicado_id = ta.id AND s.estado = 'realizada')"],
+            'estudios_cargados' => ['Estudios cargados', '(SELECT COUNT(*) FROM estudios_diagnosticos ed WHERE ed.tratamiento_aplicado_id = ta.id AND ed.paciente_id = pl.paciente_id)'],
+            'controles_pendientes' => ['Controles pendientes', "(SELECT COUNT(*) FROM controles co WHERE co.tratamiento_aplicado_id = ta.id AND co.estado IN ('pendiente', 'vencido'))"],
         ],
         'agenda' => [
             'fecha' => ['Fecha', 'c.fecha'],
@@ -85,16 +95,27 @@ class ReporteService
     ];
 
     // Columnas dinámicas numéricas, con dinero, de fecha y de hora.
-    private const NUMERICAS = ['costo_acordado', 'sesiones_planificadas', 'sesiones_realizadas', 'duracion_minutos', 'monto'];
+    private const NUMERICAS = ['costo_acordado', 'sesiones_planificadas', 'sesiones_realizadas', 'estudios_cargados', 'controles_pendientes', 'duracion_minutos', 'monto'];
 
     private const MONTOS = ['costo_acordado', 'monto'];
 
-    private const FECHAS = ['fecha_inicio', 'fecha_fin', 'fecha', 'fecha_pago'];
+    private const FECHAS = ['fecha_inicio', 'fecha_fin', 'ultima_sesion', 'fecha', 'fecha_pago'];
 
     private const HORAS = ['hora_inicio', 'hora_fin'];
 
-    public function __construct(private PagoService $pagos)
-    {
+    // RF-84 y RF-85: documentos por paciente (no tabulares). Solo se exportan a PDF.
+    public const DOCUMENTOS = [
+        'historia' => 'Historia clínica',
+        'odontogramas' => 'Comparativo de odontogramas',
+    ];
+
+    public const SIN_COMPARATIVO = 'El paciente no tiene dos odontogramas para comparar.';
+
+    public function __construct(
+        private PagoService $pagos,
+        private HistoriaClinicaService $historias,
+        private OdontogramaService $odontogramas,
+    ) {
     }
 
     /**
@@ -257,6 +278,173 @@ class ReporteService
         (new Xlsx($libro))->save('php://output');
 
         return ob_get_clean();
+    }
+
+    /**
+     * RF-84: historia clínica imprimible. Reutiliza HistoriaClinicaService::consolidar() (CU24)
+     * y le agrega las sesiones realizadas de cada tratamiento y el dibujo del último odontograma.
+     * Devuelve null si el paciente no tiene historia clínica (igual que consolidar()).
+     */
+    public function historiaClinica(int $pacienteId): ?array
+    {
+        $paciente = Paciente::findOrFail($pacienteId);
+        $datos = $this->historias->consolidar($paciente);
+
+        if ($datos === null) {
+            return null;
+        }
+
+        $tratamientos = $datos['planes']->flatMap->tratamientosAplicados;
+
+        // Sesiones realizadas de todos los tratamientos en una sola consulta, agrupadas por tratamiento.
+        $sesiones = Sesion::with('odontologo')
+            ->whereIn('tratamiento_aplicado_id', $tratamientos->pluck('id'))
+            ->where('estado', 'realizada')
+            ->orderBy('fecha')
+            ->orderBy('numero_sesion')
+            ->get()
+            ->groupBy('tratamiento_aplicado_id');
+
+        return $datos + [
+            'titulo' => self::DOCUMENTOS['historia'],
+            'nombre_archivo' => 'historia_clinica_'.$this->apellidoArchivo($paciente),
+            'tratamientos' => $tratamientos,
+            'sesiones' => $sesiones,
+            'dibujo' => $datos['ultimoOdontograma'] ? $this->dibujo($datos['ultimoOdontograma']) : null,
+        ];
+    }
+
+    /**
+     * RF-84: PDF de la historia clínica, con el mismo encabezado del consultorio que los reportes.
+     */
+    public function exportarHistoriaPdf(array $datos): string
+    {
+        return Pdf::loadView('reportes.historia-pdf', ['datos' => $datos])
+            ->setPaper('letter', 'portrait')
+            ->output();
+    }
+
+    /**
+     * RF-85: comparativo de dos odontogramas del paciente. Reutiliza OdontogramaService::comparar() (CU26).
+     * Sin $a y $b toma el INICIAL y el ÚLTIMO de evolución (solo activos; si falta alguno, el más
+     * antiguo y el más reciente). Con menos de dos odontogramas devuelve 'aviso' = SIN_COMPARATIVO.
+     * $a y $b deben venir validados (del paciente y distintos) por el controlador.
+     */
+    public function comparativoOdontograma(int $pacienteId, ?int $a = null, ?int $b = null): array
+    {
+        $paciente = Paciente::findOrFail($pacienteId);
+
+        $odontogramas = Odontograma::with('odontologo', 'detalles.estadoPieza')
+            ->whereHas('historiaClinica', fn ($q) => $q->where('paciente_id', $paciente->id))
+            ->orderBy('fecha_registro')
+            ->orderBy('id')
+            ->get();
+
+        $datos = [
+            'titulo' => self::DOCUMENTOS['odontogramas'],
+            'nombre_archivo' => 'comparativo_odontograma_'.$this->apellidoArchivo($paciente),
+            'paciente' => $paciente,
+            'odontogramas' => $odontogramas,
+            'aviso' => null,
+        ];
+
+        if ($a !== null && $b !== null) {
+            $odontogramaA = $odontogramas->firstWhere('id', $a);
+            $odontogramaB = $odontogramas->firstWhere('id', $b);
+        } else {
+            $activos = $odontogramas->where('estado', 'activo')->values();
+            $odontogramaA = $activos->firstWhere('tipo', 'inicial') ?? $activos->first();
+            $odontogramaB = $activos->where('tipo', 'evolución')->last() ?? $activos->last();
+        }
+
+        if ($odontogramas->count() < 2 || ! $odontogramaA || ! $odontogramaB || $odontogramaA->id === $odontogramaB->id) {
+            return array_merge($datos, ['aviso' => self::SIN_COMPARATIVO]);
+        }
+
+        $filas = $this->odontogramas->comparar($odontogramaA->id, $odontogramaB->id);
+        $cambios = collect($filas)->where('cambio', true);
+
+        // Cambios agrupados por el estado al que llegó la pieza en B.
+        $porEstado = $cambios->groupBy(fn ($fila) => $fila['estado_b'] ?? 'No registrada')
+            ->map(fn ($grupo, $estado) => [
+                'estado' => $estado,
+                'color' => $grupo->first()['color_b'],
+                'cantidad' => $grupo->count(),
+                'piezas' => $grupo->pluck('codigo_fdi')->all(),
+            ])
+            ->sortByDesc('cantidad')
+            ->values()
+            ->all();
+
+        return array_merge($datos, [
+            'a' => $odontogramaA,
+            'b' => $odontogramaB,
+            'dibujo_a' => $this->dibujo($odontogramaA),
+            'dibujo_b' => $this->dibujo($odontogramaB),
+            'filas' => $filas,
+            'resumen' => [
+                'total_piezas' => count($filas),
+                'cambiaron' => $cambios->count(),
+                'sin_cambio' => count($filas) - $cambios->count(),
+                'por_estado' => $porEstado,
+            ],
+        ]);
+    }
+
+    /**
+     * RF-85: PDF del comparativo, con el mismo encabezado del consultorio que los reportes.
+     * Hoja apaisada: los dos odontogramas van lado a lado.
+     */
+    public function exportarComparativoPdf(array $datos): string
+    {
+        return Pdf::loadView('reportes.odontogramas-pdf', ['datos' => $datos])
+            ->setPaper('letter', 'landscape')
+            ->output();
+    }
+
+    /**
+     * Color de texto legible sobre el color de un estado de pieza (igual que odontogramas/show).
+     */
+    public static function textoSobre(?string $hex): string
+    {
+        if (! $hex || ! preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) {
+            return '#1F2933';
+        }
+        [$r, $g, $b] = sscanf($hex, '#%02x%02x%02x');
+
+        return (0.299 * $r + 0.587 * $g + 0.114 * $b) > 160 ? '#1F2933' : '#FFFFFF';
+    }
+
+    // Dibujo de un odontograma con el esquema FDI de odontogramas/show: arcadas, cuadrantes y el estado de cada pieza.
+    private function dibujo(Odontograma $odontograma): array
+    {
+        $piezas = $odontograma->detalles->mapWithKeys(fn ($d) => [
+            $d->pieza_dental_id => ['estado' => $d->estadoPieza->nombre, 'color' => $d->estadoPieza->color_referencia ?? '#E1E8EB'],
+        ]);
+
+        $arcadas = [
+            'Arcada superior' => [range(18, 11), range(21, 28)],
+            'Arcada inferior' => [range(48, 41), range(31, 38)],
+        ];
+
+        if ($odontograma->tipo_denticion !== 'permanente' || $piezas->keys()->contains(fn ($fdi) => $fdi >= 51)) {
+            $arcadas['Arcada superior temporal'] = [range(55, 51), range(61, 65)];
+            $arcadas['Arcada inferior temporal'] = [range(85, 81), range(71, 75)];
+        }
+
+        // Leyenda: solo los estados presentes, con la cantidad de piezas.
+        $leyenda = $piezas->groupBy('estado')
+            ->map(fn ($grupo, $estado) => ['estado' => $estado, 'color' => $grupo->first()['color'], 'cantidad' => $grupo->count()])
+            ->values()
+            ->all();
+
+        return ['arcadas' => $arcadas, 'piezas' => $piezas->all(), 'leyenda' => $leyenda];
+    }
+
+    // Apellido del paciente para el nombre del archivo: sin tildes ni espacios.
+    private function apellidoArchivo(Paciente $paciente): string
+    {
+        return Str::slug($paciente->apellidos, '_');
     }
 
     // Números como número (dinero con #,##0.00) y lo demás siempre como texto.

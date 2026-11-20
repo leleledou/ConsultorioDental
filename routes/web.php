@@ -264,6 +264,9 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::get('/agenda', 'agenda')->name('reportes.agenda');
         Route::get('/financieros', 'financiero')->name('reportes.financieros');
         Route::get('/exportar', 'exportar')->name('reportes.exportar');
+        // Ciclo 4 - RF-84 historia clínica imprimible y RF-85 comparativo de odontogramas.
+        Route::get('/historia/{paciente}', 'historiaClinica')->whereNumber('paciente')->name('reportes.historia');
+        Route::get('/odontogramas/{paciente}', 'comparativoOdontograma')->whereNumber('paciente')->name('reportes.odontogramas');
     });
 
     // Ciclo 4 - CU25 Registrar odontograma (RF-15, RF-20, RF-23) y CU26 Comparar odontogramas.

@@ -147,6 +147,12 @@
             <a href="{{ route('odontogramas.listar', $paciente->id) }}" class="btn btn-secondary">
                 <x-icon name="arrow-left" class="h-4 w-4" /> Volver a los odontogramas
             </a>
+            {{-- RF-85: con la pareja elegida; sin elegir, el inicial y el último de evolución --}}
+            @unless (isset($aviso))
+                <a href="{{ route('reportes.odontogramas', ($a && $b) ? [$paciente->id, 'a' => $a->id, 'b' => $b->id] : $paciente->id) }}" class="btn btn-primary">
+                    <x-icon name="printer" class="h-4 w-4" /> Ver comparativo imprimible
+                </a>
+            @endunless
         </div>
     </x-pagina>
 </x-app-layout>

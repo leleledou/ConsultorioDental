@@ -64,5 +64,39 @@
         </section>
 
         @include('reportes.partials.resultado')
+
+        {{-- RF-84 y RF-85: documentos por paciente. Búsqueda por CI, nombres o apellidos (CU09). --}}
+        <section id="documentos" class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="documentos-paciente">
+            <header class="border-b border-line bg-surface/60 px-5 py-4 sm:px-6">
+                <h3 id="documentos-paciente" class="text-lg font-bold text-ink">Documentos por paciente</h3>
+                <p class="mt-0.5 text-sm text-ink-soft">Historia clínica imprimible y comparativo de odontogramas de un paciente.</p>
+            </header>
+
+            <form method="GET" action="{{ route('reportes.clinicos') }}#documentos" class="flex flex-col gap-3 p-5 sm:flex-row sm:items-end sm:p-6">
+                <x-campo name="buscar_paciente" label="Buscar paciente" class="min-w-0 flex-1">
+                    <input id="buscar_paciente" name="buscar_paciente" type="search" value="{{ request('buscar_paciente') }}"
+                           class="dr-input" placeholder="CI, nombres o apellidos" autocomplete="off">
+                </x-campo>
+                <button type="submit" class="btn btn-primary"><x-icon name="search" class="h-4 w-4" /> Buscar</button>
+            </form>
+
+            @if (request()->filled('buscar_paciente'))
+                @if ($pacientesDocumento->isEmpty())
+                    <p class="border-t border-line px-5 py-8 text-center text-sm font-semibold text-ink-soft sm:px-6">No se encontraron pacientes con ese criterio de búsqueda.</p>
+                @else
+                    <ul class="divide-y divide-line border-t border-line">
+                        @foreach ($pacientesDocumento as $p)
+                            <li class="flex flex-col gap-3 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                                <p class="min-w-0 text-ink"><span class="font-semibold">{{ $p->nombreCompleto() }}</span> <span class="text-sm text-ink-soft">· CI {{ $p->ci }}</span></p>
+                                <div class="flex flex-col gap-2 min-[420px]:flex-row">
+                                    <a href="{{ route('reportes.historia', $p->id) }}" class="btn btn-secondary btn-sm"><x-icon name="printer" class="h-4 w-4" /> Historia clínica</a>
+                                    <a href="{{ route('reportes.odontogramas', $p->id) }}" class="btn btn-secondary btn-sm"><x-icon name="refresh" class="h-4 w-4" /> Comparativo de odontogramas</a>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            @endif
+        </section>
     </x-pagina>
 </x-app-layout>

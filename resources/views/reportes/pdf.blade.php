@@ -20,10 +20,7 @@
     </style>
 </head>
 <body>
-    <h1>Consultorio Odontológico DentalRox</h1>
-    <h2>{{ $datos['titulo'] }}</h2>
-    <p>Periodo: {{ $datos['periodo'] }}</p>
-    <p>Fecha de generación: {{ now()->format('d/m/Y H:i') }}</p>
+    @include('reportes.partials.encabezado-pdf', ['titulo' => $datos['titulo'], 'detalle' => 'Periodo: '.$datos['periodo']])
 
     <table>
         <thead>

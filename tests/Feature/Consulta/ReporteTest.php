@@ -375,3 +375,86 @@ it('sin datos muestra el mensaje exacto', function () {
         ->assertOk()
         ->assertSee('No hay registros para los filtros elegidos');
 });
+
+it('el reporte dinámico clínico funciona con las tres columnas nuevas', function () {
+    $paciente = crearPaciente();
+    $tratamiento = crearTratamientoAplicado([
+        'plan_tratamiento_id' => crearPlan(['paciente_id' => $paciente->id])->id,
+        'fecha_inicio' => '2026-03-05',
+        'sesiones_planificadas' => 3,
+    ]);
+    crearSesion($tratamiento->id, ['fecha' => '2026-03-06']);
+    crearSesion($tratamiento->id, ['fecha' => '2026-03-20']);
+    // Una anulada no cuenta como última sesión.
+    crearSesion($tratamiento->id, ['fecha' => '2026-03-25', 'estado' => 'anulada']);
+
+    $tipo = crearTipoEstudio()->id;
+    crearEstudioDiagnostico($paciente->id, $tipo, ['tratamiento_aplicado_id' => $tratamiento->id]);
+    crearEstudioDiagnostico($paciente->id, $tipo, ['tratamiento_aplicado_id' => $tratamiento->id]);
+    // Estudio del paciente sin ligar al tratamiento: no cuenta.
+    crearEstudioDiagnostico($paciente->id, $tipo);
+
+    crearControl($tratamiento->id, ['fecha_prevista' => '2026-04-01']);
+    crearControl($tratamiento->id, ['fecha_prevista' => '2026-04-15', 'estado' => 'vencido']);
+    crearControl($tratamiento->id, ['fecha_prevista' => '2026-04-20', 'estado' => 'cumplido', 'fecha_cumplimiento' => '2026-04-20']);
+
+    // Otro tratamiento del periodo sin nada: la fecha queda en «—» y los conteos en 0.
+    crearTratamientoAplicado(['fecha_inicio' => '2026-03-10']);
+
+    $nuevas = ['ultima_sesion', 'estudios_cargados', 'controles_pendientes'];
+
+    $resultado = $this->actingAs($this->usuario)
+        ->get(route('reportes.clinicos', dinamico($nuevas)))
+        ->assertOk()
+        ->assertSee('Última sesión')
+        ->viewData('resultado');
+
+    expect($resultado['columnas'])->toBe(['ultima_sesion' => 'Última sesión', 'estudios_cargados' => 'Estudios cargados', 'controles_pendientes' => 'Controles pendientes'])
+        ->and($resultado['filas'])->toBe([
+            ['ultima_sesion' => '20/03/2026', 'estudios_cargados' => 2.0, 'controles_pendientes' => 2.0],
+            ['ultima_sesion' => '—', 'estudios_cargados' => 0.0, 'controles_pendientes' => 0.0],
+        ]);
+
+    // Combinadas con columnas que ya existían, en cualquier orden.
+    $combinado = $this->actingAs($this->usuario)
+        ->get(route('reportes.clinicos', dinamico(['controles_pendientes', 'paciente', 'sesiones_realizadas', 'ultima_sesion'], ['estado' => 'planificado'])))
+        ->assertOk()
+        ->viewData('resultado');
+
+    expect(array_keys($combinado['columnas']))->toBe(['paciente', 'sesiones_realizadas', 'ultima_sesion', 'controles_pendientes'])
+        ->and($combinado['filas'][0]['sesiones_realizadas'])->toBe(2.0);
+
+    // Todas las columnas de la lista blanca a la vez.
+    $this->actingAs($this->usuario)
+        ->get(route('reportes.clinicos', dinamico(array_keys(ReporteService::columnasDisponibles('clinico')))))
+        ->assertOk()
+        ->assertSessionHasNoErrors();
+});
+
+it('las columnas nuevas aparecen en la exportación a Excel y PDF', function () {
+    $tratamiento = crearTratamientoAplicado(['fecha_inicio' => '2026-03-05']);
+    crearSesion($tratamiento->id, ['fecha' => '2026-03-06']);
+    crearControl($tratamiento->id);
+
+    $parametros = ['reporte' => 'clinico'] + dinamico(['tratamiento', 'ultima_sesion', 'estudios_cargados', 'controles_pendientes']);
+
+    $respuesta = $this->actingAs($this->usuario)
+        ->get(route('reportes.exportar', $parametros + ['formato' => 'excel']))
+        ->assertOk();
+
+    $archivo = tempnam(sys_get_temp_dir(), 'xlsx');
+    file_put_contents($archivo, $respuesta->getContent());
+    $hoja = \PhpOffice\PhpSpreadsheet\IOFactory::load($archivo)->getActiveSheet();
+    unlink($archivo);
+
+    expect([$hoja->getCell('A3')->getValue(), $hoja->getCell('B3')->getValue(), $hoja->getCell('C3')->getValue(), $hoja->getCell('D3')->getValue()])
+        ->toBe(['Tratamiento', 'Última sesión', 'Estudios cargados', 'Controles pendientes'])
+        ->and($hoja->getCell('B4')->getValue())->toBe('06/03/2026')
+        ->and($hoja->getCell('C4')->getValue())->toEqual(0)
+        ->and($hoja->getCell('D4')->getValue())->toEqual(1);
+
+    $this->actingAs($this->usuario)
+        ->get(route('reportes.exportar', $parametros + ['formato' => 'pdf']))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf');
+});
