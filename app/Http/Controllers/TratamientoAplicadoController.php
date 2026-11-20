@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Control;
 use App\Models\Diagnostico;
 use App\Models\PiezaDental;
 use App\Models\PlanTratamiento;
@@ -122,7 +123,10 @@ class TratamientoAplicadoController extends Controller
         // RF-59: estudios que exige el tratamiento, cargados y pendientes.
         $requeridos = $this->estudios->requeridosPendientes($tratamiento);
 
-        return view('tratamientos-aplicados.show', compact('tratamiento', 'realizadas', 'destinos', 'requeridos'));
+        // CU38: controles posteriores del tratamiento, del más próximo al más lejano.
+        $controles = Control::where('tratamiento_aplicado_id', $tratamiento->id)->orderBy('fecha_prevista')->get();
+
+        return view('tratamientos-aplicados.show', compact('tratamiento', 'realizadas', 'destinos', 'requeridos', 'controles'));
     }
 
     // CU29: ACTUALIZAR el estado de un tratamiento aplicado. El id viene en el formulario.

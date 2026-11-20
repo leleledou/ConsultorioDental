@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AntecedenteMedicoController;
+use App\Http\Controllers\AvisoController;
 use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\CitaController;
+use App\Http\Controllers\ControlController;
 use App\Http\Controllers\DetalleOdontogramaController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\EspecialidadController;
@@ -36,7 +38,7 @@ use Illuminate\Support\Facades\Route;
  * especialidades y Gestión de Pacientes. Ciclo 2: catálogo de tratamientos, citas y agenda.
  * Ciclo 3: catálogos clínicos y de servicios, atención clínica, pagos y reportes.
  * Ciclo 4: odontograma, historia clínica consolidada, sesiones de evolución, estudios
- * diagnósticos y valoraciones para implante.
+ * diagnósticos, valoraciones para implante, controles y avisos.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -316,6 +318,24 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::post('/valoraciones', 'store')->name('valoraciones.guardar');
         Route::post('/valoraciones/update', 'update')->name('valoraciones.modificar');
         Route::get('/valoraciones/{id}', 'show')->whereNumber('id')->name('valoraciones.mostrar');
+    });
+
+    // CU38 Programar control (RF-79, RF-80) y disparo manual de CU39 Actualizar controles vencidos.
+    // Los dos roles: sin middleware rol. El id viaja oculto en cumplir.
+    Route::controller(ControlController::class)->group(function () {
+        Route::get('/controles', 'index')->name('controles.listar');
+        Route::get('/tratamientos-aplicados/{ta}/controles/crear', 'create')->whereNumber('ta')->name('controles.crear');
+        Route::post('/controles', 'store')->name('controles.guardar');
+        Route::post('/controles/cumplir', 'cumplir')->name('controles.cumplir');
+        Route::post('/controles/vencer', 'vencer')->name('controles.vencer');
+    });
+
+    // CU41 Consultar avisos (RF-82) y disparo manual de CU40 Generar avisos internos.
+    // Cada usuario ve solo sus avisos: sin middleware rol.
+    Route::controller(AvisoController::class)->group(function () {
+        Route::get('/avisos', 'index')->name('avisos.listar');
+        Route::post('/avisos/leer', 'leer')->name('avisos.leer');
+        Route::post('/avisos/generar', 'generar')->name('avisos.generar');
     });
 });
 

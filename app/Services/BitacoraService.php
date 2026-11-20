@@ -149,6 +149,14 @@ class BitacoraService
     public const REGISTRAR_VALORACION = 'REGISTRAR_VALORACION';
     public const MODIFICAR_VALORACION = 'MODIFICAR_VALORACION';
 
+    // Acciones de CU38 Programar control y CU39 Actualizar controles vencidos.
+    public const PROGRAMAR_CONTROL = 'PROGRAMAR_CONTROL';
+    public const CUMPLIR_CONTROL = 'CUMPLIR_CONTROL';
+    public const VENCER_CONTROLES = 'VENCER_CONTROLES';
+
+    // Acción de CU40 Generar avisos internos.
+    public const GENERAR_AVISOS = 'GENERAR_AVISOS';
+
     /**
      * Devuelve la lista de los valores de todas las acciones (todas las constantes).
      * Se usa para validar el filtro "accion" de CU07 Consultar bitácora.

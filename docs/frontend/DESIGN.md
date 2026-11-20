@@ -162,6 +162,10 @@ Pantallas: `odontogramas/index`, `create`, `show` y `comparar`; `historias/conso
 - **Estudios requeridos (RF-59)** en la ficha del tratamiento aplicado: lista con insignias Obligatorio (turquesa) / Recomendado (gris) y Cargado (verde) / Pendiente (ámbar), con acción por fila.
 - **Valoraciones para implante**: `x-valoraciones.resultado` (apto verde, apto con condiciones ámbar, no apto rojo) y `x-valoraciones.hueso` (suficiente verde, regular ámbar, insuficiente rojo). Con hueso insuficiente el formulario marca «Requiere injerto» como propuesta, desmarcable.
 
+- **Controles (CU38/CU39)**: `x-controles.estado` (pendiente azul, cumplido verde, vencido rojo) y `x-controles.cumplir` (botón que despliega fecha y observaciones, reutilizado en la lista general y en la ficha del tratamiento). La lista usa tres cifras de color que enlazan al filtro y una sola lista de filas (cada fila tiene su formulario); los vencidos llevan fondo rojo suave.
+- **Disparos manuales del Temporizador (CU39/CU40)**: tarjeta propia con título, explicación de la hora a la que corre solo y botón secundario con icono `refresh`.
+- **Avisos (CU41)**: `x-avisos.tipo`; los no leídos con fondo `brand-50`, barra lateral turquesa, texto en negrita e insignia roja «Sin leer»; los leídos en gris. En la barra lateral, el contador rojo aparece solo con avisos sin leer (debajo de «Panel» y en la opción «Avisos» de P5).
+
 ## Pendiente
 - Pruebas funcionales finales con datos ficticios (solo en la base auxiliar), decisión sobre `APP_LOCALE` y limpieza de los componentes Breeze sobrantes.
 - Componentes sobrantes (sin eliminar): `components/nav-link`, `components/responsive-nav-link` y `welcome.blade.php` (Breeze) ya no se usan.

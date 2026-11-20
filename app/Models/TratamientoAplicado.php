@@ -106,4 +106,20 @@ class TratamientoAplicado extends Model
     {
         return $this->pagos()->where('estado', 'vigente');
     }
+
+    /**
+     * Odontólogo responsable del tratamiento (destinatario de sus avisos, CU40).
+     */
+    public function odontologo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'odontologo_id');
+    }
+
+    /**
+     * Controles posteriores programados (CU38).
+     */
+    public function controles(): HasMany
+    {
+        return $this->hasMany(Control::class, 'tratamiento_aplicado_id');
+    }
 }

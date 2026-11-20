@@ -87,6 +87,43 @@
             </dl>
         </section>
 
+        {{-- CU38: controles posteriores del tratamiento --}}
+        <section id="controles" class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="titulo-controles">
+            <header class="flex flex-col gap-3 border-b border-line bg-surface/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <h3 id="titulo-controles" class="text-lg font-bold text-ink">Controles <span class="ms-1 text-sm font-semibold text-ink-soft">({{ $controles->count() }})</span></h3>
+                @if ($tratamiento->estado !== 'cancelado')
+                    <a href="{{ route('controles.crear', $tratamiento->id) }}" class="btn btn-primary btn-sm self-start sm:self-auto">
+                        <x-icon name="calendar" class="h-4 w-4" /> Programar control
+                    </a>
+                @endif
+            </header>
+
+            @if ($controles->isEmpty())
+                <p class="px-5 py-8 text-center text-sm font-semibold text-ink-soft sm:px-6">El tratamiento no tiene controles programados.</p>
+            @else
+                <ul class="divide-y divide-line">
+                    @foreach ($controles as $control)
+                        <li class="flex flex-col gap-3 px-5 py-4 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="font-semibold tabular-nums text-ink">{{ $control->fecha_prevista->format('d/m/Y') }}</p>
+                                    <x-controles.estado :estado="$control->estado" />
+                                </div>
+                                <p class="mt-0.5 break-words text-sm text-ink-soft">
+                                    {{ $control->motivo ?? 'Sin motivo indicado' }}
+                                    @if ($control->fecha_cumplimiento) · cumplido el <span class="tabular-nums">{{ $control->fecha_cumplimiento->format('d/m/Y') }}</span> @endif
+                                </p>
+                                @if ($control->observaciones)
+                                    <p class="mt-0.5 whitespace-pre-line break-words text-sm text-ink">{{ $control->observaciones }}</p>
+                                @endif
+                            </div>
+                            <x-controles.cumplir :control="$control" class="shrink-0 lg:max-w-md" />
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
         {{-- RF-59: estudios que exige el tratamiento, cargados y pendientes --}}
         @php
             $pacienteId = $tratamiento->plan->paciente_id;

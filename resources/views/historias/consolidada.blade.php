@@ -20,6 +20,7 @@
         'tratamientos' => 'Tratamientos',
         'estudios' => 'Estudios',
         'valoraciones' => 'Implantes',
+        'controles' => 'Controles',
         'cuenta' => 'Estado de cuenta',
     ];
 @endphp
@@ -274,6 +275,33 @@
                 @endif
             </section>
         </div>
+
+        {{-- Controles posteriores (CU38): se llega a ellos por los tratamientos del paciente --}}
+        <section id="controles" class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="titulo-controles">
+            <header class="flex flex-col gap-3 border-b border-line bg-surface/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <h3 id="titulo-controles" class="text-lg font-bold text-ink">Controles <span class="ms-1 text-sm font-semibold text-ink-soft">({{ $controles->count() }})</span></h3>
+                <a href="{{ route('controles.listar') }}" class="btn btn-secondary btn-sm self-start sm:self-auto">Ver todos los controles</a>
+            </header>
+
+            @if ($controles->isEmpty())
+                <p class="px-5 py-8 text-center text-sm font-semibold text-ink-soft sm:px-6">El paciente no tiene controles programados.</p>
+            @else
+                <ul class="divide-y divide-line">
+                    @foreach ($controles as $control)
+                        <li class="flex flex-col gap-1 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                            <div class="min-w-0">
+                                <a href="{{ route('tratamientos-aplicados.mostrar', $control->tratamiento_aplicado_id) }}#controles" class="font-semibold text-brand-700 hover:text-brand-900 hover:underline">{{ $control->tratamientoAplicado->tratamiento->nombre }}</a>
+                                <p class="mt-0.5 break-words text-sm text-ink-soft">{{ $control->motivo ?? 'Sin motivo indicado' }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm tabular-nums text-ink-soft">{{ $control->fecha_prevista->format('d/m/Y') }}</span>
+                                <x-controles.estado :estado="$control->estado" />
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
 
         {{-- 8. Estado de cuenta (mismo cálculo que CU36) --}}
         <section id="cuenta" class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="titulo-cuenta">

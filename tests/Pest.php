@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\AntecedenteMedico;
+use App\Models\Aviso;
 use App\Models\Cita;
+use App\Models\Control;
 use App\Models\Diagnostico;
 use App\Models\Especialidad;
 use App\Models\EstadoCita;
@@ -309,6 +311,30 @@ function crearValoracionImplante(int $pacienteId, int $piezaDentalId, array $dat
         'estado_hueso' => 'suficiente',
         'requiere_injerto' => false,
         'resultado' => 'apto',
+    ]);
+}
+
+// Control pendiente del tratamiento aplicado para dentro de un mes; $datos reemplaza los valores por defecto.
+function crearControl(int $tratamientoAplicadoId, array $datos = []): Control
+{
+    return Control::create($datos + [
+        'tratamiento_aplicado_id' => $tratamientoAplicadoId,
+        'fecha_prevista' => today()->addMonth(),
+        'motivo' => 'Control de rutina',
+        'estado' => 'pendiente',
+    ]);
+}
+
+// Aviso no leído para el odontólogo; $datos reemplaza los valores por defecto.
+function crearAviso(int $odontologoId, array $datos = []): Aviso
+{
+    return Aviso::create($datos + [
+        'odontologo_id' => $odontologoId,
+        'tipo' => Aviso::SALDO_PENDIENTE,
+        'referencia_id' => null,
+        'mensaje' => 'Aviso de prueba.',
+        'fecha_generacion' => now(),
+        'leido' => false,
     ]);
 }
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Control;
 use App\Models\EstudioDiagnostico;
 use App\Models\Odontograma;
 use App\Models\Paciente;
@@ -24,7 +25,7 @@ class HistoriaClinicaService
     /**
      * Devuelve los datos de la historia consolidada, o null si el paciente no tiene historia clínica.
      *
-     * @return array{paciente: Paciente, historia: \App\Models\HistoriaClinica, ultimoOdontograma: ?Odontograma, totalOdontogramas: int, planes: \Illuminate\Support\Collection, estudios: \Illuminate\Support\Collection, valoraciones: \Illuminate\Support\Collection, cuenta: array{costo_total: float, abonado: float, saldo: float}}|null
+     * @return array{paciente: Paciente, historia: \App\Models\HistoriaClinica, ultimoOdontograma: ?Odontograma, totalOdontogramas: int, planes: \Illuminate\Support\Collection, estudios: \Illuminate\Support\Collection, valoraciones: \Illuminate\Support\Collection, controles: \Illuminate\Support\Collection, cuenta: array{costo_total: float, abonado: float, saldo: float}}|null
      */
     public function consolidar(Paciente $paciente): ?array
     {
@@ -64,6 +65,12 @@ class HistoriaClinicaService
             ->orderByDesc('fecha_valoracion')
             ->get();
 
+        // Controles del paciente: la tabla no tiene paciente_id, se llega por el tratamiento y su plan.
+        $controles = Control::with('tratamientoAplicado.tratamiento')
+            ->whereHas('tratamientoAplicado.plan', fn ($q) => $q->where('paciente_id', $paciente->id))
+            ->orderByDesc('fecha_prevista')
+            ->get();
+
         return [
             'paciente' => $paciente,
             'historia' => $historia,
@@ -72,6 +79,7 @@ class HistoriaClinicaService
             'planes' => $planes,
             'estudios' => $estudios,
             'valoraciones' => $valoraciones,
+            'controles' => $controles,
             'cuenta' => $this->estadoCuenta($planes),
         ];
     }

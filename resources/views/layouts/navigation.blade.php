@@ -29,6 +29,17 @@
             <span class="flex items-center gap-3"><x-icon name="home" class="h-5 w-5" /> Panel</span>
         </a>
 
+        {{-- CU41: avisos sin leer del usuario ($avisosSinLeer lo da el View Composer de AppServiceProvider).
+             Sin avisos pendientes no se muestra. --}}
+        @if (($avisosSinLeer ?? 0) > 0 && Route::has('avisos.listar'))
+            <a href="{{ route('avisos.listar') }}"
+               @class(['nav-item mt-1', 'nav-item-active' => request()->routeIs('avisos.*')])
+               aria-label="Avisos: {{ $avisosSinLeer }} sin leer">
+                <span class="flex items-center gap-3"><x-icon name="alert" class="h-5 w-5" /> Avisos</span>
+                <span class="ms-auto inline-flex min-w-6 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold tabular-nums text-white" aria-hidden="true">{{ $avisosSinLeer > 99 ? '99+' : $avisosSinLeer }}</span>
+            </a>
+        @endif
+
         <div class="mt-5 space-y-1">
             @foreach ($paquetes as $paquete)
                 @php $activo = $paqueteActivo($paquete); @endphp
@@ -66,6 +77,11 @@
                                        @class(['nav-item', 'nav-item-active' => $actual])
                                        @if ($actual) aria-current="page" @endif>
                                         {{ $opcion['nombre'] }}
+                                        @if ($opcion['ruta'] === 'avisos.listar' && ($avisosSinLeer ?? 0) > 0)
+                                            <span class="ms-auto inline-flex min-w-6 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold tabular-nums text-white">
+                                                {{ $avisosSinLeer > 99 ? '99+' : $avisosSinLeer }}<span class="sr-only"> sin leer</span>
+                                            </span>
+                                        @endif
                                     </a>
                                 @else
                                     {{-- Opción inhabilitada: en gris y sin enlace --}}

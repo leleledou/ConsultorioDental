@@ -108,8 +108,8 @@ class MenuService
                 'descripcion' => 'Cobros, controles posteriores, avisos y reportes.',
                 'opciones' => [
                     self::opcion('Pagos', 'pacientes.listar', 'pagos.*'),
-                    self::opcion('Controles y seguimiento'),
-                    self::opcion('Avisos'),
+                    self::opcion('Controles y seguimiento', 'controles.listar', ['controles.*']),
+                    self::opcion('Avisos', 'avisos.listar', ['avisos.*']),
                     self::opcion('Reportes', 'reportes.clinicos', 'reportes.*'),
                 ],
             ],
