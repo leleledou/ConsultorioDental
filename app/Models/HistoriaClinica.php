@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HistoriaClinica extends Model
 {
@@ -57,5 +58,13 @@ class HistoriaClinica extends Model
     {
         return $this->belongsToMany(AntecedenteMedico::class, 'historias_antecedentes', 'historia_clinica_id', 'antecedente_medico_id')
             ->withPivot('id', 'observacion', 'fecha_registro');
+    }
+
+    /**
+     * Odontogramas de la historia (CU25).
+     */
+    public function odontogramas(): HasMany
+    {
+        return $this->hasMany(Odontograma::class, 'historia_clinica_id');
     }
 }

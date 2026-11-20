@@ -18,6 +18,25 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100 space-y-4">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Historial de precios</h3>
 
+                    {{-- Filtro por estado: ?estado=vigente|cerrada, sin parámetro = todas --}}
+                    <div class="flex flex-wrap items-center gap-2">
+                        @foreach ([null => 'Todas', 'vigente' => 'Vigentes', 'cerrada' => 'Cerradas'] as $valor => $etiqueta)
+                            <a href="{{ route('tarifas.mostrar', $valor ? [$tratamiento->id, 'estado' => $valor] : $tratamiento->id) }}"
+                               @class([
+                                   'inline-flex items-center px-4 py-2 border rounded-md font-semibold text-xs uppercase tracking-widest shadow-sm',
+                                   'bg-gray-800 dark:bg-gray-200 border-transparent text-white dark:text-gray-800' => ($estado ?? '') === $valor,
+                                   'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' => ($estado ?? '') !== $valor,
+                               ])>
+                                {{ $etiqueta }}
+                            </a>
+                        @endforeach
+
+                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                            {{ $totales['vigente'] ?? 0 }} vigentes · {{ $totales['cerrada'] ?? 0 }} cerradas
+                        </span>
+                    </div>
+                    <x-input-error :messages="$errors->get('estado')" />
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                             <thead>
@@ -45,7 +64,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="4" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
-                                            Este tratamiento no tiene tarifas registradas.
+                                            {{ $estado ? 'Este tratamiento no tiene tarifas ' . ($estado === 'vigente' ? 'vigentes' : 'cerradas') . '.' : 'Este tratamiento no tiene tarifas registradas.' }}
                                         </td>
                                     </tr>
                                 @endforelse

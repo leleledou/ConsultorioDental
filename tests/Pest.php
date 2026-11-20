@@ -10,6 +10,7 @@ use App\Models\EstudioDiagnostico;
 use App\Models\HistoriaClinica;
 use App\Models\Material;
 use App\Models\MetodoPago;
+use App\Models\Odontograma;
 use App\Models\Paciente;
 use App\Models\Pago;
 use App\Models\PiezaDental;
@@ -207,6 +208,19 @@ function crearEstudioRequerido(int $tratamientoId, int $tipoEstudioId, array $da
 function crearHistoria(int $pacienteId): HistoriaClinica
 {
     return HistoriaClinica::create(['paciente_id' => $pacienteId, 'fecha_apertura' => today()]);
+}
+
+// Odontograma inicial permanente de hoy, activo y sin piezas; crea el odontólogo si no se indica.
+function crearOdontograma(int $historiaClinicaId, array $datos = []): Odontograma
+{
+    return Odontograma::create($datos + [
+        'historia_clinica_id' => $historiaClinicaId,
+        'odontologo_id' => crearUsuario()->id,
+        'fecha_registro' => today(),
+        'tipo' => 'inicial',
+        'tipo_denticion' => 'permanente',
+        'estado' => 'activo',
+    ]);
 }
 
 // Plan activo; crea el paciente y el odontólogo si no se indican.

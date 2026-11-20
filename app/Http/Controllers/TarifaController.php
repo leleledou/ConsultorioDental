@@ -75,15 +75,30 @@ class TarifaController extends Controller
     }
 
     // MOSTRAR el historial de tarifas de UN tratamiento. El id es el del tratamiento.
-    public function show($id): View
+    // Filtro opcional ?estado=vigente|cerrada; sin parámetro muestra todas.
+    public function show(Request $request, $id): View
     {
+        $request->validate(
+            ['estado' => ['nullable', 'in:vigente,cerrada']],
+            ['estado.in' => 'El estado del filtro debe ser vigente o cerrada.']
+        );
+
+        $estado = $request->input('estado');
+
         $tratamiento = Tratamiento::findOrFail($id);
 
         $tarifas = Tarifa::where('tratamiento_id', $id)
+            ->when($estado, fn ($consulta, $estado) => $consulta->where('estado', $estado))
             ->orderByDesc('fecha_inicio_vigencia')
             ->get();
 
-        return view('tarifas.show', compact('tratamiento', 'tarifas'));
+        // Contador del tratamiento, sin importar el filtro.
+        $totales = Tarifa::where('tratamiento_id', $id)
+            ->selectRaw('estado, count(*) as total')
+            ->groupBy('estado')
+            ->pluck('total', 'estado');
+
+        return view('tarifas.show', compact('tratamiento', 'tarifas', 'estado', 'totales'));
     }
 
     // Reglas de los datos. bail: un precio no válido muestra un solo mensaje.

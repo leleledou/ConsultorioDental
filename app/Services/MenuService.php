@@ -94,7 +94,7 @@ class MenuService
                 'descripcion' => 'Historia clínica, odontograma, planes y sesiones de tratamiento.',
                 'opciones' => [
                     self::opcion('Historia clínica y antecedentes', 'pacientes.listar', 'historias.*'),
-                    self::opcion('Odontograma'),
+                    self::opcion('Odontograma', 'pacientes.listar', ['odontogramas.*']),
                     self::opcion('Plan de tratamiento', 'planes.listar', ['planes.*', 'tratamientos-aplicados.*']),
                     self::opcion('Sesiones de tratamiento'),
                     self::opcion('Estudios diagnósticos'),

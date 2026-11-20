@@ -70,6 +70,7 @@
                                     <th class="px-3 py-2">Tratamiento</th>
                                     <th class="px-3 py-2">Precio vigente</th>
                                     <th class="px-3 py-2">Vigente desde</th>
+                                    <th class="px-3 py-2">Estado</th>
                                     <th class="px-3 py-2">Acciones</th>
                                 </tr>
                             </thead>
@@ -80,8 +81,16 @@
                                         @if ($t->tarifaVigente)
                                             <td class="px-3 py-3">{{ $t->tarifaVigente->precio }}</td>
                                             <td class="px-3 py-3 whitespace-nowrap">{{ $t->tarifaVigente->fecha_inicio_vigencia->format('d/m/Y') }}</td>
+                                            <td class="px-3 py-3">
+                                                @if ($t->tarifaVigente->estado === 'vigente')
+                                                    <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-200 whitespace-nowrap">Vigente</span>
+                                                @else
+                                                    <span class="inline-flex rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Cerrada</span>
+                                                @endif
+                                            </td>
                                         @else
                                             <td class="px-3 py-3 text-gray-500 dark:text-gray-400">Sin tarifa</td>
+                                            <td class="px-3 py-3 text-gray-500 dark:text-gray-400">—</td>
                                             <td class="px-3 py-3 text-gray-500 dark:text-gray-400">—</td>
                                         @endif
                                         <td class="px-3 py-3">
@@ -98,7 +107,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
+                                        <td colspan="5" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
                                             {{ $buscar ? 'No se encontraron tratamientos con ese criterio de búsqueda.' : 'No hay tratamientos registrados.' }}
                                         </td>
                                     </tr>

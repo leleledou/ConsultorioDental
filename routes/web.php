@@ -4,6 +4,7 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AntecedenteMedicoController;
 use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\CitaController;
+use App\Http\Controllers\DetalleOdontogramaController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\EstadoPiezaController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\HistoriaClinicaController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MetodoPagoController;
+use App\Http\Controllers\OdontogramaController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\PiezaDentalController;
@@ -29,6 +31,7 @@ use Illuminate\Support\Facades\Route;
  * Rutas de DentalRox - Ciclo 1: Administración de Usuarios y Seguridad, catálogo de
  * especialidades y Gestión de Pacientes. Ciclo 2: catálogo de tratamientos, citas y agenda.
  * Ciclo 3: catálogos clínicos y de servicios, atención clínica, pagos y reportes.
+ * Ciclo 4: odontograma.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -252,6 +255,24 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::get('/agenda', 'agenda')->name('reportes.agenda');
         Route::get('/financieros', 'financiero')->name('reportes.financieros');
         Route::get('/exportar', 'exportar')->name('reportes.exportar');
+    });
+
+    // Ciclo 4 - CU25 Registrar odontograma (RF-15, RF-20, RF-23) y CU26 Comparar odontogramas.
+    // Los dos roles atienden: sin middleware rol.
+    // "crear" va antes que /{id}; además {id} solo acepta números.
+    Route::controller(OdontogramaController::class)->group(function () {
+        Route::get('/pacientes/{paciente}/odontogramas', 'index')->whereNumber('paciente')->name('odontogramas.listar');
+        Route::get('/pacientes/{paciente}/odontogramas/comparar', 'comparar')->whereNumber('paciente')->name('odontogramas.comparar');
+        Route::get('/odontogramas/crear', 'create')->name('odontogramas.crear');
+        Route::post('/odontogramas', 'store')->name('odontogramas.guardar');
+        Route::get('/odontogramas/{id}', 'show')->whereNumber('id')->name('odontogramas.mostrar');
+    });
+
+    // CU25: piezas del odontograma (detalle). El id viaja oculto en el formulario.
+    Route::controller(DetalleOdontogramaController::class)->group(function () {
+        Route::post('/odontogramas/detalle', 'store')->name('odontogramas.detalle.guardar');
+        Route::post('/odontogramas/detalle/update', 'update')->name('odontogramas.detalle.modificar');
+        Route::post('/odontogramas/detalle/delete', 'delete')->name('odontogramas.detalle.quitar');
     });
 });
 

@@ -127,6 +127,12 @@ class BitacoraService
     public const REGISTRAR_ABONO = 'REGISTRAR_ABONO';
     public const ANULAR_ABONO = 'ANULAR_ABONO';
 
+    // Acciones de CU25 Registrar odontograma y del detalle de sus piezas.
+    public const CREAR_ODONTOGRAMA = 'CREAR_ODONTOGRAMA';
+    public const REGISTRAR_DETALLE_ODONTOGRAMA = 'REGISTRAR_DETALLE_ODONTOGRAMA';
+    public const MODIFICAR_DETALLE_ODONTOGRAMA = 'MODIFICAR_DETALLE_ODONTOGRAMA';
+    public const QUITAR_DETALLE_ODONTOGRAMA = 'QUITAR_DETALLE_ODONTOGRAMA';
+
     /**
      * Devuelve la lista de los valores de todas las acciones (todas las constantes).
      * Se usa para validar el filtro "accion" de CU07 Consultar bitácora.
