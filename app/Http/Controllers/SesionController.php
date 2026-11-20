@@ -81,8 +81,13 @@ class SesionController extends Controller
             // Bloquea el tratamiento: dos sesiones simultáneas no pueden tomar el mismo número.
             $ta = TratamientoAplicado::with('plan')->lockForUpdate()->findOrFail($datos['tratamiento_aplicado_id']);
 
+            // Cancelado y concluido son estados terminales (ver estadosDestino de CU29).
             if ($ta->estado === 'cancelado') {
                 return ['operacion' => 'No se pueden registrar sesiones en un tratamiento cancelado.'];
+            }
+
+            if ($ta->estado === 'concluido') {
+                return ['operacion' => 'No se pueden registrar sesiones en un tratamiento concluido.'];
             }
 
             if ($datos['fecha'] < $ta->fecha_inicio->toDateString()) {

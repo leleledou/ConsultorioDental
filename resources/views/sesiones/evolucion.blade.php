@@ -4,7 +4,7 @@
     $porcentaje = $tratamiento->sesiones_planificadas > 0 ? min(100, (int) round($realizadas / $tratamiento->sesiones_planificadas * 100)) : 0;
     $tonos = ['realizada' => 'exito', 'pendiente' => 'aviso', 'anulada' => 'error'];
     $cantidad = fn ($valor) => rtrim(rtrim(number_format((float) $valor, 2, ',', '.'), '0'), ',');
-    $puedeRegistrar = $tratamiento->estado !== 'cancelado';
+    $puedeRegistrar = ! in_array($tratamiento->estado, ['cancelado', 'concluido'], true);
 @endphp
 
 <x-app-layout>

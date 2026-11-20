@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EstudioDiagnostico extends Model
 {
@@ -62,5 +63,37 @@ class EstudioDiagnostico extends Model
     public function pieza(): BelongsTo
     {
         return $this->belongsTo(PiezaDental::class, 'pieza_dental_id');
+    }
+
+    /**
+     * Paciente del estudio.
+     */
+    public function paciente(): BelongsTo
+    {
+        return $this->belongsTo(Paciente::class, 'paciente_id');
+    }
+
+    /**
+     * Odontólogo que registró el estudio.
+     */
+    public function odontologo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'odontologo_id');
+    }
+
+    /**
+     * Tratamiento aplicado al que corresponde el estudio. Puede ser null.
+     */
+    public function tratamientoAplicado(): BelongsTo
+    {
+        return $this->belongsTo(TratamientoAplicado::class, 'tratamiento_aplicado_id');
+    }
+
+    /**
+     * Valoraciones para implante que este estudio respalda.
+     */
+    public function valoraciones(): HasMany
+    {
+        return $this->hasMany(ValoracionImplante::class, 'estudio_diagnostico_id');
     }
 }

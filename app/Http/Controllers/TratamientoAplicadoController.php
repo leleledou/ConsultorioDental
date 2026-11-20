@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Diagnostico;
-use App\Models\EstudioDiagnostico;
 use App\Models\PiezaDental;
 use App\Models\PlanTratamiento;
 use App\Models\Sesion;
@@ -11,6 +10,7 @@ use App\Models\Tratamiento;
 use App\Models\TratamientoAplicado;
 use App\Models\TratamientoTipoEstudio;
 use App\Services\BitacoraService;
+use App\Services\EstudioDiagnosticoService;
 use App\Services\PlanTratamientoService;
 use App\Services\TarifaService;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +28,8 @@ class TratamientoAplicadoController extends Controller
 {
     public function __construct(
         private TarifaService $tarifas,
-        private PlanTratamientoService $planes
+        private PlanTratamientoService $planes,
+        private EstudioDiagnosticoService $estudios
     ) {
     }
 
@@ -56,7 +57,8 @@ class TratamientoAplicadoController extends Controller
             ->where('momento_clinico', 'previo al tratamiento')
             ->get();
 
-        $cargados = EstudioDiagnostico::where('paciente_id', $plan->paciente_id)->pluck('tipo_estudio_id');
+        // Mismo criterio de "estudio cargado" que RF-59 (EstudioDiagnosticoService).
+        $cargados = $this->estudios->tiposCargados($plan->paciente_id);
 
         // RF-39: estudios previos obligatorios que le faltan al paciente, por tratamiento.
         $faltantes = [];
@@ -117,7 +119,10 @@ class TratamientoAplicadoController extends Controller
 
         $destinos = $this->estadosDestino($tratamiento->estado);
 
-        return view('tratamientos-aplicados.show', compact('tratamiento', 'realizadas', 'destinos'));
+        // RF-59: estudios que exige el tratamiento, cargados y pendientes.
+        $requeridos = $this->estudios->requeridosPendientes($tratamiento);
+
+        return view('tratamientos-aplicados.show', compact('tratamiento', 'realizadas', 'destinos', 'requeridos'));
     }
 
     // CU29: ACTUALIZAR el estado de un tratamiento aplicado. El id viene en el formulario.

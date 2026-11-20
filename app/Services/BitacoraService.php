@@ -140,6 +140,15 @@ class BitacoraService
     public const MODIFICAR_MATERIAL_SESION = 'MODIFICAR_MATERIAL_SESION';
     public const QUITAR_MATERIAL_SESION = 'QUITAR_MATERIAL_SESION';
 
+    // Acciones de CU32 Gestionar estudios diagnósticos.
+    public const REGISTRAR_ESTUDIO = 'REGISTRAR_ESTUDIO';
+    public const MODIFICAR_ESTUDIO = 'MODIFICAR_ESTUDIO';
+    public const ELIMINAR_ESTUDIO = 'ELIMINAR_ESTUDIO';
+
+    // Acciones de CU33 Registrar valoración para implante.
+    public const REGISTRAR_VALORACION = 'REGISTRAR_VALORACION';
+    public const MODIFICAR_VALORACION = 'MODIFICAR_VALORACION';
+
     /**
      * Devuelve la lista de los valores de todas las acciones (todas las constantes).
      * Se usa para validar el filtro "accion" de CU07 Consultar bitácora.

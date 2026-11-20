@@ -55,4 +55,36 @@ class ValoracionImplante extends Model
     {
         return $this->belongsTo(PiezaDental::class, 'pieza_dental_id');
     }
+
+    /**
+     * Paciente valorado.
+     */
+    public function paciente(): BelongsTo
+    {
+        return $this->belongsTo(Paciente::class, 'paciente_id');
+    }
+
+    /**
+     * Odontólogo que hizo la valoración.
+     */
+    public function odontologo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'odontologo_id');
+    }
+
+    /**
+     * Estudio diagnóstico que respalda la valoración (RF-62). Puede ser null.
+     */
+    public function estudio(): BelongsTo
+    {
+        return $this->belongsTo(EstudioDiagnostico::class, 'estudio_diagnostico_id');
+    }
+
+    /**
+     * Tratamiento aplicado que se derivó de la valoración (RF-65). Puede ser null.
+     */
+    public function tratamientoAplicado(): BelongsTo
+    {
+        return $this->belongsTo(TratamientoAplicado::class, 'tratamiento_aplicado_id');
+    }
 }

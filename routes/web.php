@@ -8,6 +8,7 @@ use App\Http\Controllers\DetalleOdontogramaController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\EstadoPiezaController;
+use App\Http\Controllers\EstudioDiagnosticoController;
 use App\Http\Controllers\HistoriaAntecedenteController;
 use App\Http\Controllers\HistoriaClinicaController;
 use App\Http\Controllers\InicioController;
@@ -27,13 +28,15 @@ use App\Http\Controllers\TratamientoAplicadoController;
 use App\Http\Controllers\TratamientoController;
 use App\Http\Controllers\TratamientoTipoEstudioController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\ValoracionImplanteController;
 use Illuminate\Support\Facades\Route;
 
 /*
  * Rutas de DentalRox - Ciclo 1: Administración de Usuarios y Seguridad, catálogo de
  * especialidades y Gestión de Pacientes. Ciclo 2: catálogo de tratamientos, citas y agenda.
  * Ciclo 3: catálogos clínicos y de servicios, atención clínica, pagos y reportes.
- * Ciclo 4: odontograma, historia clínica consolidada y sesiones de evolución.
+ * Ciclo 4: odontograma, historia clínica consolidada, sesiones de evolución, estudios
+ * diagnósticos y valoraciones para implante.
  * Solo se usan Route::get (mostrar) y Route::post (acciones).
  * En update, delete y las demás acciones, el id viaja oculto en el formulario.
  */
@@ -294,6 +297,25 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::post('/sesiones/materiales', 'store')->name('sesiones.material.guardar');
         Route::post('/sesiones/materiales/update', 'update')->name('sesiones.material.modificar');
         Route::post('/sesiones/materiales/delete', 'delete')->name('sesiones.material.quitar');
+    });
+
+    // CU32 Gestionar estudios diagnósticos (RF-52 a RF-57, RF-59). Los dos roles: sin middleware rol.
+    // "descargar" va antes que /{id}; el id viaja oculto en update y delete.
+    Route::controller(EstudioDiagnosticoController::class)->group(function () {
+        Route::get('/pacientes/{paciente}/estudios', 'index')->whereNumber('paciente')->name('estudios.listar');
+        Route::post('/estudios', 'store')->name('estudios.guardar');
+        Route::post('/estudios/update', 'update')->name('estudios.modificar');
+        Route::post('/estudios/delete', 'delete')->name('estudios.eliminar');
+        Route::get('/estudios/{id}/descargar', 'descargar')->whereNumber('id')->name('estudios.descargar');
+        Route::get('/estudios/{id}', 'show')->whereNumber('id')->name('estudios.mostrar');
+    });
+
+    // CU33 Registrar valoración para implante (RF-60 a RF-65). Los dos roles: sin middleware rol.
+    Route::controller(ValoracionImplanteController::class)->group(function () {
+        Route::get('/pacientes/{paciente}/valoraciones', 'index')->whereNumber('paciente')->name('valoraciones.listar');
+        Route::post('/valoraciones', 'store')->name('valoraciones.guardar');
+        Route::post('/valoraciones/update', 'update')->name('valoraciones.modificar');
+        Route::get('/valoraciones/{id}', 'show')->whereNumber('id')->name('valoraciones.mostrar');
     });
 });
 

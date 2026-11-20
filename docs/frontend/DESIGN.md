@@ -158,6 +158,10 @@ Pantallas: `odontogramas/index`, `create`, `show` y `comparar`; `historias/conso
 - **Historia consolidada**: índice de anclas (`btn-sm`) arriba y ocho secciones `dr-card` con `scroll-mt-24`; miniatura del odontograma con cuadros de 24 px y resumen por estado con texto. El estado de cuenta repite el código de color financiero (neutro, verde, ámbar).
 - **Sesiones**: el avance es «Sesión X de Y» con barra (`role="progressbar"` en la evolución). La evolución es una línea de tiempo vertical con marcador numerado (turquesa realizada, ámbar pendiente, gris tachado anulada). La advertencia del RF-50 es `x-alerta tipo="aviso"` con una casilla táctil `has-[:checked]`. Los materiales del formulario de sesión son filas dinámicas con Alpine; en la ficha, una lista única con edición en línea.
 
+- **Estudios diagnósticos**: `x-estudios.formato` (Enlace = azul, Imagen = turquesa, PDF = gris). El formulario (`x-estudios.formulario`, mismo componente en alta y modificación, dentro de `x-modal`) alterna «Subir archivo» / «Registrar enlace» con un selector segmentado; el control inactivo queda `disabled` y no viaja. La ficha muestra vista previa de imágenes, botón de descarga para PDF y botón «Abrir enlace externo» para URLs.
+- **Estudios requeridos (RF-59)** en la ficha del tratamiento aplicado: lista con insignias Obligatorio (turquesa) / Recomendado (gris) y Cargado (verde) / Pendiente (ámbar), con acción por fila.
+- **Valoraciones para implante**: `x-valoraciones.resultado` (apto verde, apto con condiciones ámbar, no apto rojo) y `x-valoraciones.hueso` (suficiente verde, regular ámbar, insuficiente rojo). Con hueso insuficiente el formulario marca «Requiere injerto» como propuesta, desmarcable.
+
 ## Pendiente
 - Pruebas funcionales finales con datos ficticios (solo en la base auxiliar), decisión sobre `APP_LOCALE` y limpieza de los componentes Breeze sobrantes.
 - Componentes sobrantes (sin eliminar): `components/nav-link`, `components/responsive-nav-link` y `welcome.blade.php` (Breeze) ya no se usan.

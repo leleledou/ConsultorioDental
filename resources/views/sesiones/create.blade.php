@@ -1,7 +1,8 @@
 {{-- CU30 Registrar sesión de evolución (RF-43 a RF-50). Desde una cita atendida, RF-49 y RF-66. --}}
 @php
     $paciente = $tratamiento->plan->paciente;
-    $cancelado = $tratamiento->estado === 'cancelado';
+    // Cancelado y concluido son estados terminales: ya no admiten sesiones.
+    $cerrado = in_array($tratamiento->estado, ['cancelado', 'concluido'], true);
     $porcentaje = $tratamiento->sesiones_planificadas > 0 ? min(100, (int) round($realizadas / $tratamiento->sesiones_planificadas * 100)) : 0;
 
     // Clase de un control, con borde rojo si el campo tiene error.
@@ -67,8 +68,8 @@
             </x-alerta>
         @endif
 
-        @if ($cancelado)
-            <x-alerta tipo="error">No se pueden registrar sesiones en un tratamiento cancelado.</x-alerta>
+        @if ($cerrado)
+            <x-alerta tipo="error">No se pueden registrar sesiones en un tratamiento {{ $tratamiento->estado }}.</x-alerta>
         @else
             <form method="POST" action="{{ route('sesiones.guardar') }}" class="dr-card overflow-hidden">
                 @csrf

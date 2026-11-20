@@ -108,6 +108,13 @@
                 <a href="{{ route('historias.consolidada', $paciente->id) }}" class="btn btn-secondary">
                     Historia consolidada
                 </a>
+                {{-- CU32 Gestionar estudios diagnósticos y CU33 Registrar valoración para implante --}}
+                <a href="{{ route('estudios.listar', $paciente->id) }}" class="btn btn-secondary">
+                    Estudios
+                </a>
+                <a href="{{ route('valoraciones.listar', $paciente->id) }}" class="btn btn-secondary">
+                    Valoraciones
+                </a>
             @endif
             <a href="{{ route('planes.listar', ['paciente_id' => $paciente->id]) }}" class="btn btn-secondary">
                 Planes de tratamiento

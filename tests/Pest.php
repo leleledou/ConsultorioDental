@@ -23,6 +23,7 @@ use App\Models\Tratamiento;
 use App\Models\TratamientoAplicado;
 use App\Models\TratamientoTipoEstudio;
 use App\Models\User;
+use App\Models\ValoracionImplante;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -285,15 +286,29 @@ function crearSesionMaterial(int $sesionId, int $materialId, float $cantidad = 1
     return SesionMaterial::create(['sesion_id' => $sesionId, 'material_id' => $materialId, 'cantidad' => $cantidad]);
 }
 
-// Estudio diagnóstico cargado para el paciente.
-function crearEstudioDiagnostico(int $pacienteId, int $tipoEstudioId): EstudioDiagnostico
+// Estudio diagnóstico cargado para el paciente; $datos reemplaza los valores por defecto.
+function crearEstudioDiagnostico(int $pacienteId, int $tipoEstudioId, array $datos = []): EstudioDiagnostico
 {
-    return EstudioDiagnostico::create([
+    return EstudioDiagnostico::create($datos + [
         'paciente_id' => $pacienteId,
         'tipo_estudio_id' => $tipoEstudioId,
         'odontologo_id' => crearUsuario()->id,
         'fecha_estudio' => today(),
         'fecha_registro' => today(),
+    ]);
+}
+
+// Valoración para implante de la pieza (apto, hueso suficiente); $datos reemplaza los valores por defecto.
+function crearValoracionImplante(int $pacienteId, int $piezaDentalId, array $datos = []): ValoracionImplante
+{
+    return ValoracionImplante::create($datos + [
+        'paciente_id' => $pacienteId,
+        'pieza_dental_id' => $piezaDentalId,
+        'odontologo_id' => crearUsuario()->id,
+        'fecha_valoracion' => today(),
+        'estado_hueso' => 'suficiente',
+        'requiere_injerto' => false,
+        'resultado' => 'apto',
     ]);
 }
 

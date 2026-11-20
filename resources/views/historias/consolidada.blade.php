@@ -218,8 +218,9 @@
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
             {{-- 6. Estudios diagnósticos --}}
             <section id="estudios" class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="titulo-estudios">
-                <header class="border-b border-line bg-surface/60 px-5 py-4 sm:px-6">
+                <header class="flex flex-col gap-3 border-b border-line bg-surface/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <h3 id="titulo-estudios" class="text-lg font-bold text-ink">Estudios diagnósticos <span class="ms-1 text-sm font-semibold text-ink-soft">({{ $estudios->count() }})</span></h3>
+                    <a href="{{ route('estudios.listar', $paciente->id) }}" class="btn btn-secondary btn-sm self-start sm:self-auto">Ver estudios</a>
                 </header>
 
                 @if ($estudios->isEmpty())
@@ -229,7 +230,7 @@
                         @foreach ($estudios as $e)
                             <li class="px-5 py-3 sm:px-6">
                                 <div class="flex items-start justify-between gap-3">
-                                    <p class="min-w-0 break-words font-semibold text-ink">{{ $e->tipoEstudio->nombre }}</p>
+                                    <a href="{{ route('estudios.mostrar', $e->id) }}" class="min-w-0 break-words font-semibold text-brand-700 hover:text-brand-900 hover:underline">{{ $e->tipoEstudio->nombre }}</a>
                                     <p class="shrink-0 text-sm tabular-nums text-ink-soft">{{ $e->fecha_estudio->format('d/m/Y') }}</p>
                                 </div>
                                 <p class="mt-0.5 text-sm text-ink-soft">
@@ -246,8 +247,9 @@
 
             {{-- 7. Valoraciones para implante --}}
             <section id="valoraciones" class="dr-card scroll-mt-24 overflow-hidden" aria-labelledby="titulo-valoraciones">
-                <header class="border-b border-line bg-surface/60 px-5 py-4 sm:px-6">
+                <header class="flex flex-col gap-3 border-b border-line bg-surface/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <h3 id="titulo-valoraciones" class="text-lg font-bold text-ink">Valoraciones para implante <span class="ms-1 text-sm font-semibold text-ink-soft">({{ $valoraciones->count() }})</span></h3>
+                    <a href="{{ route('valoraciones.listar', $paciente->id) }}" class="btn btn-secondary btn-sm self-start sm:self-auto">Ver valoraciones</a>
                 </header>
 
                 @if ($valoraciones->isEmpty())
@@ -257,8 +259,8 @@
                         @foreach ($valoraciones as $v)
                             <li class="px-5 py-3 sm:px-6">
                                 <div class="flex items-start justify-between gap-3">
-                                    <p class="min-w-0 font-semibold text-ink">Pieza {{ $v->pieza->codigo_fdi }} · <span class="font-normal text-ink-soft">{{ $v->pieza->nombre }}</span></p>
-                                    <x-insignia :tono="['apto' => 'exito', 'apto con condiciones' => 'aviso', 'no apto' => 'error'][$v->resultado] ?? 'neutro'">{{ ucfirst($v->resultado) }}</x-insignia>
+                                    <a href="{{ route('valoraciones.mostrar', $v->id) }}" class="min-w-0 font-semibold text-brand-700 hover:text-brand-900 hover:underline">Pieza {{ $v->pieza->codigo_fdi }} · <span class="font-normal text-ink-soft">{{ $v->pieza->nombre }}</span></a>
+                                    <x-valoraciones.resultado :resultado="$v->resultado" />
                                 </div>
                                 <p class="mt-0.5 text-sm text-ink-soft">
                                     <span class="tabular-nums">{{ $v->fecha_valoracion->format('d/m/Y') }}</span> · hueso {{ $v->estado_hueso }}{{ $v->requiere_injerto ? ' · requiere injerto' : '' }}

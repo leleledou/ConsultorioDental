@@ -87,6 +87,58 @@
             </dl>
         </section>
 
+        {{-- RF-59: estudios que exige el tratamiento, cargados y pendientes --}}
+        @php
+            $pacienteId = $tratamiento->plan->paciente_id;
+            $altaEstudio = fn (?int $tipo = null) => route('estudios.listar', array_filter([
+                'paciente' => $pacienteId,
+                'nuevo' => 1,
+                'tratamiento_aplicado_id' => $tratamiento->id,
+                'tipo' => $tipo,
+            ]));
+            $filasRequeridas = array_merge($requeridos['pendientes'], $requeridos['cargados']);
+        @endphp
+        <section class="dr-card overflow-hidden" aria-labelledby="estudios-requeridos">
+            <header class="flex flex-col gap-3 border-b border-line bg-surface/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div>
+                    <h3 id="estudios-requeridos" class="text-lg font-bold text-ink">Estudios requeridos</h3>
+                    @if ($filasRequeridas !== [])
+                        <p class="mt-0.5 text-sm text-ink-soft">{{ count($requeridos['cargados']) }} cargados · {{ count($requeridos['pendientes']) }} pendientes</p>
+                    @endif
+                </div>
+                <a href="{{ $altaEstudio() }}" class="btn btn-primary btn-sm self-start sm:self-auto">
+                    <x-icon name="plus" class="h-4 w-4" /> Registrar estudio
+                </a>
+            </header>
+
+            @if ($filasRequeridas === [])
+                <p class="px-5 py-8 text-center text-sm font-semibold text-ink-soft sm:px-6">El tratamiento no exige estudios diagnósticos.</p>
+            @else
+                <ul class="divide-y divide-line">
+                    @foreach ($filasRequeridas as $r)
+                        <li class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="break-words font-semibold text-ink">{{ $r['nombre'] }}</p>
+                                    <x-insignia :tono="$r['obligatorio'] ? 'marca' : 'neutro'">{{ $r['obligatorio'] ? 'Obligatorio' : 'Recomendado' }}</x-insignia>
+                                </div>
+                                <p class="mt-0.5 text-sm text-ink-soft">{{ ucfirst($r['momento_clinico']) }}@if ($r['observacion']) · {{ $r['observacion'] }}@endif</p>
+                            </div>
+                            <div class="flex shrink-0 items-center gap-3">
+                                @if ($r['estudio'])
+                                    <x-insignia tono="exito">Cargado</x-insignia>
+                                    <a href="{{ route('estudios.mostrar', $r['estudio']->id) }}" class="btn btn-secondary btn-sm">Ver estudio del {{ $r['estudio']->fecha_estudio->format('d/m/Y') }}</a>
+                                @else
+                                    <x-insignia tono="aviso">Pendiente</x-insignia>
+                                    <a href="{{ $altaEstudio($r['tipo_estudio_id']) }}" class="btn btn-secondary btn-sm"><x-icon name="plus" class="h-4 w-4" /> Registrar</a>
+                                @endif
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
         {{-- Cambio de estado: solo los destinos permitidos (el id viaja oculto) --}}
         @if (! $planActivo)
             <x-alerta tipo="aviso">El plan no está activo.</x-alerta>
@@ -126,7 +178,7 @@
             </a>
 
             {{-- CU30 Registrar sesión de evolución y CU31 Consultar evolución del tratamiento --}}
-            @if ($tratamiento->estado !== 'cancelado')
+            @if (! in_array($tratamiento->estado, ['cancelado', 'concluido'], true))
                 <a href="{{ route('sesiones.crear', $tratamiento->id) }}" class="btn btn-primary">
                     <x-icon name="plus" class="h-4 w-4" /> Registrar sesión
                 </a>

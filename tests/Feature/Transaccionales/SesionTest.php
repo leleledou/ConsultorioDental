@@ -80,6 +80,18 @@ it('rechaza sesión en tratamiento cancelado, con el mensaje exacto', function (
     expect(Sesion::count())->toBe(0);
 });
 
+it('rechaza sesión en tratamiento concluido, con el mensaje exacto', function () {
+    crearSesion($this->ta->id, ['numero_sesion' => 1, 'fecha' => today()->subDay()]);
+    $this->ta->update(['estado' => 'concluido', 'fecha_fin' => today()]);
+
+    $this->actingAs($this->usuario)
+        ->post(route('sesiones.guardar'), datosSesion($this->ta->id))
+        ->assertSessionHasErrors(['operacion' => 'No se pueden registrar sesiones en un tratamiento concluido.']);
+
+    expect(Sesion::count())->toBe(1)
+        ->and($this->ta->fresh()->sesiones_planificadas)->toBe(2);
+});
+
 it('rechaza fecha futura y fecha anterior al inicio del tratamiento', function () {
     $this->actingAs($this->usuario)
         ->post(route('sesiones.guardar'), datosSesion($this->ta->id, [
