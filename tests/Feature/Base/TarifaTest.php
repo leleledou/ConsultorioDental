@@ -33,9 +33,9 @@ it('lista los tratamientos con su precio vigente o Sin tarifa', function () {
     $this->actingAs($this->admin)
         ->get(route('tarifas.listar'))
         ->assertOk()
-        ->assertSee('123.45')
+        ->assertSee('Bs 123,45')
         ->assertSee('15/01/2026')
-        ->assertDontSee('99.00')
+        ->assertDontSee('Bs 99,00')
         ->assertSee('Sin tarifa');
 });
 

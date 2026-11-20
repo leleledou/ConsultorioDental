@@ -1,88 +1,66 @@
 {{-- CU15 Consultar tratamiento: detalle del tratamiento del catálogo. --}}
+@php $disponible = $tratamiento->estaDisponible(); @endphp
+
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Tratamiento: {{ $tratamiento->nombre }}
-        </h2>
+        <x-cabecera-pagina :titulo="'Tratamiento: '.$tratamiento->nombre" subtitulo="Datos del tratamiento del catálogo."
+                           :volver="route('tratamientos.listar')" volver-texto="Tratamientos" />
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            @if (session('exito'))
-                <div class="rounded-md bg-green-50 dark:bg-green-900/30 p-4 text-sm font-medium text-green-800 dark:text-green-200">
-                    {{ session('exito') }}
-                </div>
-            @endif
+    <x-pagina>
+        @if (session('exito'))
+            <x-alerta tipo="exito">{{ session('exito') }}</x-alerta>
+        @endif
 
-            @if ($errors->any())
-                <div class="rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm font-medium text-red-800 dark:text-red-200">
-                    <ul class="space-y-1">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+        @if ($errors->any())
+            <x-alerta tipo="error">
+                <ul class="space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-alerta>
+        @endif
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="flex items-start justify-between gap-4">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Datos del tratamiento</h3>
-                    @if ($tratamiento->estaDisponible())
-                        <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-200 whitespace-nowrap">Disponible</span>
-                    @else
-                        <span class="inline-flex rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">No disponible</span>
-                    @endif
-                </div>
-
-                <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Nombre</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $tratamiento->nombre }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Especialidad</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $tratamiento->especialidad->nombre }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Duración estimada</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $tratamiento->duracion_estimada_minutos }} minutos</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Sesiones previstas</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $tratamiento->numero_sesiones_previstas }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Requiere varias sesiones</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $tratamiento->requiere_sesiones ? 'Sí' : 'No' }}</dd>
-                    </div>
-                    <div class="sm:col-span-2 lg:col-span-3">
-                        <dt class="text-gray-500 dark:text-gray-400">Descripción</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100 whitespace-pre-line">{{ $tratamiento->descripcion ?? '—' }}</dd>
-                    </div>
-                </dl>
+        <section class="dr-card p-5 sm:p-6" aria-labelledby="datos-tratamiento">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <h3 id="datos-tratamiento" class="text-lg font-bold text-ink">Datos del tratamiento</h3>
+                <x-insignia :tono="$disponible ? 'exito' : 'neutro'" class="self-start">{{ $disponible ? 'Disponible' : 'No disponible' }}</x-insignia>
             </div>
 
-            <div class="flex flex-wrap items-center gap-4">
-                <a href="{{ route('tratamientos.listar') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
-                    Volver a tratamientos
-                </a>
+            <dl class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <x-dato etiqueta="Nombre">{{ $tratamiento->nombre }}</x-dato>
+                <x-dato etiqueta="Especialidad">{{ $tratamiento->especialidad->nombre }}</x-dato>
+                <x-dato etiqueta="Duración estimada"><span class="tabular-nums">{{ $tratamiento->duracion_estimada_minutos }}</span> minutos</x-dato>
+                <x-dato etiqueta="Sesiones previstas"><span class="tabular-nums">{{ $tratamiento->numero_sesiones_previstas }}</span></x-dato>
+                <x-dato etiqueta="Requiere varias sesiones">{{ $tratamiento->requiere_sesiones ? 'Sí' : 'No' }}</x-dato>
+                <x-dato etiqueta="Estado"><x-insignia :tono="$disponible ? 'exito' : 'neutro'">{{ $disponible ? 'Disponible' : 'No disponible' }}</x-insignia></x-dato>
+                <x-dato etiqueta="Descripción" class="sm:col-span-2 lg:col-span-3 !border-b-0 !pb-0">
+                    <span class="whitespace-pre-line">{{ $tratamiento->descripcion ?? '—' }}</span>
+                </x-dato>
+            </dl>
+        </section>
 
-                {{-- Dar de baja / habilitar desde la ficha (el id viaja oculto) --}}
-                @if ($tratamiento->estaDisponible())
-                    <form method="POST" action="{{ route('tratamientos.eliminar') }}"
-                          onsubmit="return confirm({{ Js::from('¿Dar de baja el tratamiento '.$tratamiento->nombre.'?') }});">
-                        @csrf
-                        <input type="hidden" name="id" value="{{ $tratamiento->id }}">
-                        <x-danger-button>Dar de baja</x-danger-button>
-                    </form>
-                @else
-                    <form method="POST" action="{{ route('tratamientos.habilitar') }}">
-                        @csrf
-                        <input type="hidden" name="id" value="{{ $tratamiento->id }}">
-                        <x-secondary-button type="submit">Habilitar</x-secondary-button>
-                    </form>
-                @endif
-            </div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <a href="{{ route('tratamientos.listar') }}" class="btn btn-secondary">
+                <x-icon name="arrow-left" class="h-4 w-4" /> Volver a tratamientos
+            </a>
+
+            {{-- Dar de baja / habilitar desde la ficha (el id viaja oculto) --}}
+            @if ($disponible)
+                <form method="POST" action="{{ route('tratamientos.eliminar') }}"
+                      onsubmit="return confirm({{ Js::from('¿Dar de baja el tratamiento '.$tratamiento->nombre.'?') }});">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $tratamiento->id }}">
+                    <x-danger-button :suave="true" class="w-full sm:w-auto"><x-icon name="ban" class="h-4 w-4" /> Dar de baja</x-danger-button>
+                </form>
+            @else
+                <form method="POST" action="{{ route('tratamientos.habilitar') }}">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $tratamiento->id }}">
+                    <x-secondary-button type="submit" class="w-full sm:w-auto"><x-icon name="check-circle" class="h-4 w-4" /> Habilitar</x-secondary-button>
+                </form>
+            @endif
         </div>
-    </div>
+    </x-pagina>
 </x-app-layout>

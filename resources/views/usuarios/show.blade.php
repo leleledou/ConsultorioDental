@@ -1,107 +1,80 @@
 {{-- CU04 Consultar usuario y CU06 paso 2: detalle del usuario con el resumen de su acceso. --}}
+@php
+    $iniciales = mb_strtoupper(mb_substr($usuario->nombres, 0, 1).mb_substr($usuario->apellidos, 0, 1));
+    $esAdministrador = $usuario->rol === 'administrador';
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Usuario: {{ $usuario->nombres }} {{ $usuario->apellidos }}
-        </h2>
+        <x-cabecera-pagina :titulo="'Usuario: '.$usuario->nombres.' '.$usuario->apellidos"
+                           subtitulo="Datos personales y estado de acceso."
+                           :volver="route('usuarios.listar')" volver-texto="Usuarios" />
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            @if (session('exito'))
-                <div class="rounded-md bg-green-50 dark:bg-green-900/30 p-4 text-sm font-medium text-green-800 dark:text-green-200">
-                    {{ session('exito') }}
+    <x-pagina>
+        @if (session('exito'))
+            <x-alerta tipo="exito">{{ session('exito') }}</x-alerta>
+        @endif
+
+        {{-- Resumen --}}
+        <section class="dr-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6" aria-label="Resumen del usuario">
+            <div class="flex min-w-0 items-center gap-4">
+                <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-700 font-display text-lg font-bold text-white" aria-hidden="true">{{ $iniciales }}</span>
+                <div class="min-w-0">
+                    <p class="break-words font-display text-xl font-bold text-ink">{{ $usuario->nombres }} {{ $usuario->apellidos }}</p>
+                    <p class="mt-0.5 text-sm text-ink-soft">{{ $usuario->usuario }}</p>
                 </div>
-            @endif
-
-            {{-- Datos personales --}}
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Datos del usuario</h3>
-
-                <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Nombres</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->nombres }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Apellidos</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->apellidos }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">CI</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->ci }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Matrícula profesional</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->matricula_profesional }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Especialidad</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->especialidad?->nombre }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Teléfono</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->telefono }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Correo</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->correo }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Usuario</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->usuario }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Rol</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->rol === 'administrador' ? 'Administrador' : 'Odontólogo' }}</dd>
-                    </div>
-                </dl>
             </div>
+            <div class="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                <x-insignia :tono="$esAdministrador ? 'marca' : 'info'">{{ $esAdministrador ? 'Administrador' : 'Odontólogo' }}</x-insignia>
+                <x-insignia-activo :activo="$usuario->estado === 'activo'" />
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+            {{-- Datos personales --}}
+            <section class="dr-card p-5 sm:p-6 lg:col-span-2" aria-labelledby="datos-usuario">
+                <h3 id="datos-usuario" class="text-lg font-bold text-ink">Datos del usuario</h3>
+
+                <dl class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 text-sm sm:grid-cols-2">
+                    <x-dato etiqueta="Nombres">{{ $usuario->nombres }}</x-dato>
+                    <x-dato etiqueta="Apellidos">{{ $usuario->apellidos }}</x-dato>
+                    <x-dato etiqueta="CI"><span class="tabular-nums">{{ $usuario->ci }}</span></x-dato>
+                    <x-dato etiqueta="Matrícula profesional">{{ $usuario->matricula_profesional }}</x-dato>
+                    <x-dato etiqueta="Especialidad">{{ $usuario->especialidad?->nombre }}</x-dato>
+                    <x-dato etiqueta="Teléfono">{{ $usuario->telefono }}</x-dato>
+                    <x-dato etiqueta="Correo">{{ $usuario->correo }}</x-dato>
+                    <x-dato etiqueta="Usuario">{{ $usuario->usuario }}</x-dato>
+                    <x-dato etiqueta="Rol">{{ $esAdministrador ? 'Administrador' : 'Odontólogo' }}</x-dato>
+                </dl>
+            </section>
 
             {{-- Resumen del acceso (RN-03 y CU06) --}}
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Acceso</h3>
+            <section class="dr-card p-5 sm:p-6" aria-labelledby="acceso-usuario">
+                <h3 id="acceso-usuario" class="text-lg font-bold text-ink">Acceso</h3>
 
-                <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4 text-sm">
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Estado</dt>
-                        <dd class="mt-1">
-                            @if ($usuario->estado === 'activo')
-                                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-200">Activo</span>
-                            @else
-                                <span class="inline-flex rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">Inactivo</span>
-                            @endif
-                        </dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Intentos fallidos</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->intentos_fallidos }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Bloqueo vigente</dt>
-                        <dd class="mt-1">
-                            @if ($usuario->estaBloqueado())
-                                <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900/40 px-2 py-0.5 text-xs font-medium text-red-800 dark:text-red-200">
-                                    Bloqueado hasta {{ $usuario->bloqueado_hasta->format('d/m/Y H:i') }}
-                                    ({{ $usuario->minutosBloqueoRestantes() }} min)
-                                </span>
-                            @else
-                                <span class="font-medium text-gray-900 dark:text-gray-100">Sin bloqueo</span>
-                            @endif
-                        </dd>
-                    </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Debe cambiar la contraseña</dt>
-                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $usuario->debe_cambiar_contrasena ? 'Sí' : 'No' }}</dd>
-                    </div>
+                <dl class="mt-5 space-y-5 text-sm">
+                    <x-dato etiqueta="Estado"><x-insignia-activo :activo="$usuario->estado === 'activo'" /></x-dato>
+                    <x-dato etiqueta="Intentos fallidos"><span class="tabular-nums">{{ $usuario->intentos_fallidos }}</span></x-dato>
+                    <x-dato etiqueta="Bloqueo vigente">
+                        @if ($usuario->estaBloqueado())
+                            <x-insignia tono="error" class="!whitespace-normal">
+                                Bloqueado hasta {{ $usuario->bloqueado_hasta->format('d/m/Y H:i') }}
+                                ({{ $usuario->minutosBloqueoRestantes() }} min)
+                            </x-insignia>
+                        @else
+                            Sin bloqueo
+                        @endif
+                    </x-dato>
+                    <x-dato etiqueta="Debe cambiar la contraseña" class="!border-b-0 !pb-0">{{ $usuario->debe_cambiar_contrasena ? 'Sí' : 'No' }}</x-dato>
                 </dl>
-            </div>
-
-            <div>
-                <a href="{{ route('usuarios.listar') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
-                    Volver a usuarios
-                </a>
-            </div>
+            </section>
         </div>
-    </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('usuarios.listar') }}" class="btn btn-secondary">
+                <x-icon name="arrow-left" class="h-4 w-4" /> Volver a usuarios
+            </a>
+        </div>
+    </x-pagina>
 </x-app-layout>

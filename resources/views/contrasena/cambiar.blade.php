@@ -1,68 +1,61 @@
 {{-- CU03 Cambiar contraseña (basada en el formulario de contraseña del perfil de Breeze). --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Cambiar contraseña
-        </h2>
+        <x-cabecera-pagina titulo="Cambiar contraseña" subtitulo="Elija una contraseña nueva para su cuenta." />
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            {{-- Aviso destacado (p. ej. obligación de reemplazar la contraseña temporal, CU06) --}}
-            @if (session('aviso'))
-                <div class="rounded-md bg-yellow-50 dark:bg-yellow-900/30 p-4 text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                    {{ session('aviso') }}
+    <x-pagina ancho="3xl">
+        {{-- Aviso destacado (p. ej. obligación de reemplazar la contraseña temporal, CU06) --}}
+        @if (session('aviso'))
+            <x-alerta tipo="aviso">{{ session('aviso') }}</x-alerta>
+        @endif
+
+        <section class="dr-card overflow-hidden" aria-labelledby="titulo-contrasena">
+            <header class="flex items-start gap-4 border-b border-line bg-surface/60 px-5 py-4 sm:px-6">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700" aria-hidden="true">
+                    <x-icon name="key" class="h-6 w-6" />
+                </span>
+                <div>
+                    <h3 id="titulo-contrasena" class="text-lg font-bold text-ink">Cambiar contraseña</h3>
+                    <p class="mt-0.5 text-sm text-ink-soft">Al guardar, se cerrarán sus sesiones abiertas en otros equipos.</p>
                 </div>
-            @endif
+            </header>
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <section>
-                        <header>
-                            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                Cambiar contraseña
-                            </h2>
+            <form method="POST" action="{{ route('contrasena.guardar') }}" class="p-5 sm:p-6">
+                @csrf
 
-                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                Al guardar, se cerrarán sus sesiones abiertas en otros equipos.
-                            </p>
-                        </header>
+                <div class="max-w-xl space-y-5">
+                    @if ($errors->any())
+                        <x-alerta tipo="error">Revise los datos marcados en el formulario.</x-alerta>
+                    @endif
 
-                        <form method="POST" action="{{ route('contrasena.guardar') }}" class="mt-6 space-y-6">
-                            @csrf
+                    <!-- Contraseña actual -->
+                    <x-campo name="contrasena_actual" label="Contraseña actual" :requerido="true" :errores="$errors->get('contrasena_actual')">
+                        <x-text-input id="contrasena_actual" name="contrasena_actual" type="password" autocomplete="current-password" required :error="$errors->has('contrasena_actual')" />
+                    </x-campo>
 
-                            <!-- Contraseña actual -->
-                            <div>
-                                <x-input-label for="contrasena_actual" value="Contraseña actual" />
-                                <x-text-input id="contrasena_actual" name="contrasena_actual" type="password" class="mt-1 block w-full" autocomplete="current-password" required />
-                                <x-input-error :messages="$errors->get('contrasena_actual')" class="mt-2" />
-                            </div>
-
-                            <!-- Nueva contraseña -->
-                            <div>
-                                <x-input-label for="password" value="Nueva contraseña" />
-                                <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" required />
-                                {{-- Ayuda con la política RN-01 --}}
-                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                    Mínimo 8 caracteres, con mayúsculas, minúsculas, números y caracteres especiales, y sin espacios.
-                                </p>
-                                <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                            </div>
+                    <div class="border-t border-line pt-5">
+                        <!-- Nueva contraseña (ayuda con la política RN-01) -->
+                        <div class="space-y-5">
+                            <x-campo name="password" label="Nueva contraseña" :requerido="true"
+                                     ayuda="Mínimo 8 caracteres, con mayúsculas, minúsculas, números y caracteres especiales, y sin espacios."
+                                     :errores="$errors->get('password')">
+                                <x-text-input id="password" name="password" type="password" autocomplete="new-password" required :error="$errors->has('password')" />
+                            </x-campo>
 
                             <!-- Confirmar nueva contraseña -->
-                            <div>
-                                <x-input-label for="password_confirmation" value="Confirmar nueva contraseña" />
-                                <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" required />
-                                <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-                            </div>
-
-                            <div class="flex items-center gap-4">
-                                <x-primary-button>Guardar</x-primary-button>
-                            </div>
-                        </form>
-                    </section>
+                            <x-campo name="password_confirmation" label="Confirmar nueva contraseña" :requerido="true" :errores="$errors->get('password_confirmation')">
+                                <x-text-input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required :error="$errors->has('password_confirmation')" />
+                            </x-campo>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
+
+                <div class="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-xs text-ink-soft"><span class="text-red-700" aria-hidden="true">*</span> Campo obligatorio</p>
+                    <x-primary-button class="w-full sm:w-auto">Guardar</x-primary-button>
+                </div>
+            </form>
+        </section>
+    </x-pagina>
 </x-app-layout>

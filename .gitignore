@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Documentos pesados de referencia: se guardan fuera del repositorio
+docs/proyecto/*.pdf
+docs/uml/
+docs/branding/*.png
