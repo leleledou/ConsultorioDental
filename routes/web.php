@@ -264,6 +264,9 @@ Route::middleware(['auth', 'cuenta.activa', 'inactividad', 'cambio.contrasena'])
         Route::get('/agenda', 'agenda')->name('reportes.agenda');
         Route::get('/financieros', 'financiero')->name('reportes.financieros');
         Route::get('/exportar', 'exportar')->name('reportes.exportar');
+        // Reportes por voz: entrada alternativa de CU42 a CU44 (no es un caso de uso nuevo).
+        Route::get('/voz', 'voz')->name('reportes.voz');
+        Route::post('/voz', 'interpretarVoz')->name('reportes.voz.interpretar');
         // Ciclo 4 - RF-84 historia clínica imprimible y RF-85 comparativo de odontogramas.
         Route::get('/historia/{paciente}', 'historiaClinica')->whereNumber('paciente')->name('reportes.historia');
         Route::get('/odontogramas/{paciente}', 'comparativoOdontograma')->whereNumber('paciente')->name('reportes.odontogramas');

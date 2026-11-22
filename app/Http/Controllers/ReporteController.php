@@ -10,6 +10,7 @@ use App\Models\Paciente;
 use App\Models\Tratamiento;
 use App\Models\User;
 use App\Services\ReporteService;
+use App\Services\ReporteVozService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -27,9 +28,10 @@ use Illuminate\View\View;
  */
 class ReporteController extends Controller
 {
-    public function __construct(private ReporteService $reportes)
-    {
-    }
+    public function __construct(
+        private ReporteService $reportes,
+        private ReporteVozService $voz,
+    ) {}
 
     // CU42: MOSTRAR los reportes clínicos y generar el elegido.
     public function clinico(Request $request): View
@@ -64,6 +66,59 @@ class ReporteController extends Controller
             'metodos' => MetodoPago::orderBy('nombre')->get(),
             'estados' => ['vigente', 'anulado'],
         ]);
+    }
+
+    // Reportes por voz (entrada alternativa de CU42 a CU44): MOSTRAR la pantalla y, si llegan
+    // tipo y periodo, generar el reporte estático con el mismo método de las otras pantallas.
+    public function voz(Request $request): View
+    {
+        $reporte = null;
+        $resultado = null;
+
+        if ($request->filled(['tipo', 'fecha_inicio', 'fecha_fin'])) {
+            // Siempre es un reporte estático; modo queda en la consulta para que CU45 exporte lo mismo.
+            $request->merge(['modo' => 'estatico']);
+            // Familia del tipo; si el tipo no existe, la validación lo rechaza con «El reporte indicado no es válido.».
+            $reporte = $this->familia((string) $request->input('tipo')) ?? 'clinico';
+            $datos = $request->validate($this->reglas($reporte), $this->mensajes());
+            $resultado = $this->generar($datos, $reporte);
+        }
+
+        return view('reportes.voz', [
+            'reporte' => $reporte,
+            'resultado' => $resultado,
+            'interpretacion' => session('interpretacion'),
+            'frase' => session('frase', old('frase', '')),
+        ]);
+    }
+
+    // Reportes por voz: INTERPRETAR la frase (Gemini o reglas) y abrir el reporte en la pantalla.
+    public function interpretarVoz(Request $request): RedirectResponse
+    {
+        $datos = $request->validate(['frase' => ['required', 'string', 'max:200']], $this->mensajes());
+
+        $consulta = $this->voz->interpretar($datos['frase']);
+
+        return redirect()->route('reportes.voz', [
+            'tipo' => $consulta['tipo'],
+            'fecha_inicio' => $consulta['fecha_inicio'],
+            'fecha_fin' => $consulta['fecha_fin'],
+        ])->with([
+            'interpretacion' => $consulta['interpretacion'],
+            'frase' => $datos['frase'],
+        ]);
+    }
+
+    // Familia (clinico, agenda o financiero) de un reporte estático, o null si no existe.
+    private function familia(string $tipo): ?string
+    {
+        foreach (ReporteService::ESTATICOS as $familia => $tipos) {
+            if (isset($tipos[$tipo])) {
+                return $familia;
+            }
+        }
+
+        return null;
     }
 
     // RF-84: MOSTRAR la historia clínica imprimible de UN paciente.
@@ -314,6 +369,9 @@ class ReporteController extends Controller
             'b.exists' => 'El odontograma B no pertenece al paciente.',
             'formato.required' => 'El formato debe ser pdf o excel.',
             'formato.in' => 'El formato debe ser pdf o excel.',
+            'frase.required' => 'Diga o escriba la consulta del reporte.',
+            'frase.string' => 'La consulta no es válida.',
+            'frase.max' => 'La consulta no puede superar los 200 caracteres.',
         ];
     }
 }

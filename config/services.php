@@ -28,6 +28,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Reportes por voz: Gemini solo traduce la frase a {tipo, fecha_inicio, fecha_fin}.
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'modelo' => env('GEMINI_MODELO', 'gemini-flash-latest'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

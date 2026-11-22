@@ -4,6 +4,7 @@
         ['reportes.clinicos', 'Reportes clínicos'],
         ['reportes.agenda', 'Reportes de agenda'],
         ['reportes.financieros', 'Reportes financieros'],
+        ['reportes.voz', 'Reportes por voz'],
     ];
 @endphp
 
